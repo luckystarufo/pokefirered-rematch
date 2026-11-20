@@ -6,8 +6,8 @@
 // (data/scripts/rematch/house.pory).
 
 script Rematch_EventScript_NewGame {
-    // POKéMON / POKéDEX menus and running shoes from the start.
-    setflag(FLAG_SYS_POKEMON_GET)
+    // POKéDEX menu and running shoes from the start. The POKéMON menu appears only once MOM hands
+    // over the team (data/scripts/rematch/house.pory), so it never opens on an empty party.
     setflag(FLAG_SYS_POKEDEX_GET)
     setflag(FLAG_SYS_B_DASH)
     // All eight KANTO BADGES: the player earned them back then, and the field moves need them

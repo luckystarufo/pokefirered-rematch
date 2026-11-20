@@ -1027,6 +1027,9 @@ static s32 RollCredits(void)
         }
         return 0;
     case CREDITSSCENE_THEEND_SHOW:
+        // Rematch: tell the web page as soon as "THE END" starts to show (a button press could skip the wait)
+        if (sCreditsMgr->whichMon != 0)
+            Rematch_SetEndMarker(REMATCH_MARKER_THE_END);
         if (DoCopyrightOrTheEndGfxScene())
         {
             sCreditsMgr->mainseqno = CREDITSSCENE_EXEC_CMD;

@@ -75,6 +75,7 @@ script Rematch_House_EventScript_Letter {
     msgbox(format("Take CHARIZARD, PIKACHU and LAPRAS with you. They've been pacing by the door since breakfast.\pThey know something's up."))
     closemessage
     special(Rematch_GivePlayerTeam)
+    setflag(FLAG_SYS_POKEMON_GET) // the START menu's POKéMON entry appears now
     playfanfare(MUS_OBTAIN_ITEM)
     message(format("CHARIZARD, PIKACHU and LAPRAS joined {PLAYER}!"))
     waitmessage
