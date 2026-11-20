@@ -15,6 +15,7 @@
 #include "constants/maps.h"
 #include "constants/field_weather.h"
 #include "constants/sound.h"
+#include "constants/songs.h"
 #include "rematch.h"
 
 #if defined(FIRERED)
@@ -1039,6 +1040,14 @@ static s32 RollCredits(void)
         // Rematch: tell the web page the run is over, hold "THE END", then go back to the title screen
         // (a soft reset), so the game loops.
         Rematch_SetEndMarker(REMATCH_MARKER_THE_END);
+        if (Rematch_GetBlock()->flags & REMATCH_FLAG_HOLD_AT_THE_END)
+        {
+            // On the web page the closing message takes over from here: stay on THE END, let the ending
+            // theme play out, then keep the slow PALLET TOWN theme going (it loops) while they write.
+            if (IsBGMStopped())
+                FadeInNewBGM(MUS_SLOW_PALLET, 4);
+            return 0;
+        }
         if (JOY_NEW(A_BUTTON))
         {
             BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_WHITE);

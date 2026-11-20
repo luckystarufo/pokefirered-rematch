@@ -17,7 +17,7 @@
 //   0x08 playerName[8]   up to 7 chars + EOS
 //   0x10 rivalName[8]    up to 7 chars + EOS
 //   0x18 u8  gender      0 = boy, 1 = girl
-//   0x19 u8  reserved0
+//   0x19 u8  flags       REMATCH_FLAG_* (0 in the dev defaults)
 //   0x1A u16 yearPlayed  e.g. 2007
 //   0x1C u16 birthYear   e.g. 1993
 //   0x1E u16 currentYear filled by the browser (the GBA has no clock here)
@@ -31,6 +31,9 @@
 #define REMATCH_BLOCK_VERSION  1
 #define REMATCH_BLOCK_SIZE     128
 #define REMATCH_PARTY_SIZE     3
+
+// block.flags bits (set by the web page)
+#define REMATCH_FLAG_HOLD_AT_THE_END  (1 << 0) // stay on "THE END" with music instead of looping to the title
 
 // RAM marker the web page polls to detect the ending (address in the manifest).
 #define REMATCH_MARKER_NONE           0
@@ -54,7 +57,7 @@ struct RematchBlock
     /*0x08*/ u8 playerName[PLAYER_NAME_LENGTH + 1];
     /*0x10*/ u8 rivalName[PLAYER_NAME_LENGTH + 1];
     /*0x18*/ u8 gender;
-    /*0x19*/ u8 reserved0;
+    /*0x19*/ u8 flags;
     /*0x1A*/ u16 yearPlayed;
     /*0x1C*/ u16 birthYear;
     /*0x1E*/ u16 currentYear;
