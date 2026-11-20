@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <title>Rematch</title>
+  <link rel="preload" href="fonts/press-start-2p.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 0. The gate: an invite code, or ask the host for one. The only part of the site open to everyone. -->
+  <main id="gate" class="screen" hidden>
+    <div class="gba">
+      <div class="screen-glass">
+        <header class="masthead">
+          <h1 class="title">REMATCH</h1>
+          <p class="tagline">Tonight, everyone from that journey is gathering one more time.</p>
+        </header>
+
+        <form id="code-form" class="block" novalidate autocomplete="off">
+          <h2>Got your invitation?</h2>
+          <p class="body">Enter the code from your letter to join the reunion.</p>
+          <div class="code-row">
+            <input id="code" name="code" maxlength="20" autocapitalize="characters" spellcheck="false"
+                   aria-label="Invite code" placeholder="XXXX-XXXX">
+            <button type="submit" id="code-go">GO</button>
+          </div>
+          <p id="code-error" class="error" role="alert"></p>
+        </form>
+
+        <div class="divider" role="separator"><span>or</span></div>
+
+        <form id="request-form" class="block" novalidate autocomplete="off">
+          <h2>No letter yet?</h2>
+          <p class="body">The guest list is small. Everyone on it once set off from PALLET TOWN with a map and a dream.
+            Tell the host a little about your journey, and a letter may find its way to you.</p>
+          <label>Where should the letter go?
+            <input id="req-email" name="email" type="email" inputmode="email" autocomplete="email"
+                   placeholder="you@example.com">
+          </label>
+          <label>What brings you back?
+            <textarea id="req-why" name="why" rows="4" maxlength="2000"
+              placeholder="Your first POKéMON, the rival you named after your brother, the badge that took you a week… Anything true."></textarea>
+          </label>
+          <!-- bot trap: hidden from people, so only bots fill it in -->
+          <input name="website" class="trap" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <p id="request-error" class="error" role="alert"></p>
+          <button type="submit" id="request-send">ASK FOR AN INVITATION</button>
+          <p class="fine">Your email is only used to send your invitation.</p>
+        </form>
+        <p id="request-done" class="block body done" hidden></p>
+      </div>
+    </div>
+  </main>
+
+  <!-- 1. The letter: a few questions, then Start -->
+  <main id="intro" class="screen" hidden>
+    <div class="gba">
+      <div class="screen-glass">
+        <header class="masthead">
+          <h1 class="title">REMATCH</h1>
+          <p id="welcome" class="tagline" hidden></p>
+        </header>
+        <form id="form" class="block" novalidate autocomplete="off">
+          <h2>Remember Pokémon FireRed &amp; LeafGreen?</h2>
+          <p class="body">Think back to the first time you played. A few questions, and that journey picks up again.</p>
+          <label>What was your trainer's name back then?
+            <input name="playerName" maxlength="7" value="RED" required>
+          </label>
+          <label>And what did you name your rival?
+            <input name="rivalName" maxlength="7" value="BLUE" required>
+          </label>
+          <fieldset>
+            <legend>Did you play as a boy or a girl?</legend>
+            <label class="inline"><input type="radio" name="gender" value="0" checked> Boy</label>
+            <label class="inline"><input type="radio" name="gender" value="1"> Girl</label>
+          </fieldset>
+          <label>What year did you first play?
+            <input name="yearPlayed" type="number" inputmode="numeric" value="2007" required>
+          </label>
+          <label>And what year were you born?
+            <input name="birthYear" type="number" inputmode="numeric" value="1993" required>
+          </label>
+          <p id="error" class="error" role="alert"></p>
+          <button type="submit" id="start">START</button>
+          <p class="fine">Takes an hour or two. There's no saving: like the night itself, it happens once.</p>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- 2. The game -->
+  <section id="play" class="screen" hidden>
+    <div id="game"></div>
+    <p class="keys">
+      <span><kbd>Arrows</kbd> Move</span>
+      <span><kbd>X</kbd> A</span>
+      <span><kbd>Z</kbd> B</span>
+      <span><kbd>Enter</kbd> START</span>
+      <span><kbd>Backspace</kbd> SELECT</span>
+      <span><kbd>A</kbd>/<kbd>S</kbd> L/R</span>
+      <span>Hold <kbd>Tab</kbd> Fast-forward</span>
+      <span class="keys-tip">Keys not responding? Click the game screen once.</span>
+    </p>
+    <button id="finished" class="quiet" hidden>We reached THE END</button>
+  </section>
+
+  <!-- 3. The closing message -->
+  <section id="closing" class="screen" hidden>
+    <div class="closing-card">
+      <p id="closing-text"></p>
+
+      <form id="note-form" class="note" novalidate>
+        <label for="note">I made tonight for the people I grew up with.<br>
+          If it brought anything back, I'd love to hear it: a memory, your old team, or just hello.<br>
+          I'll read every single one.</label>
+        <textarea id="note" name="note" rows="6" maxlength="2000"
+                  placeholder="Your first team, a memory, or just hi…"></textarea>
+        <p id="note-error" class="error" role="alert"></p>
+        <button type="submit" id="note-send">LEAVE YOUR WORDS</button>
+      </form>
+
+      <div id="note-thanks" class="note-thanks" hidden>
+        <p class="body">Got it. Thank you, <span id="thanks-name"></span>.<br>That means more than you know.</p>
+        <p class="body share-title">Know someone else who left PALLET TOWN back then?</p>
+        <div class="share">
+          <input id="share-url" readonly aria-label="Link to this page">
+          <button type="button" id="share-copy">COPY</button>
+        </div>
+        <button type="button" id="share-native" class="quiet" hidden>Share…</button>
+        <p id="share-done" class="fine" role="status"></p>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

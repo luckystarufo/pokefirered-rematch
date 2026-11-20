@@ -37,12 +37,27 @@ You don't need an original ROM. Everything builds from source, thanks to the
 To make it someone's own night, change the names and years in `game/src/rematch_block.c`
 (by default: RED, his rival BLUE, born 1993, played in 2007) and build again.
 
+## Play it in a browser (optional)
+
+`web/` is a small page that asks a friend a few questions (their old trainer and rival names, the year they
+played), writes the answers into the ROM in memory, and runs it with a self-hosted
+[EmulatorJS](https://emulatorjs.org/), on phones too. Nothing is saved: closing the tab ends the night.
+
+- **Locally:** build the ROM, then run `sh web/sync-rom.sh`, `tools/fetch-web-vendor.sh` and
+  `python3 tools/serve-web.py 8080`, and open http://localhost:8080. Make yourself an invite code with
+  `python3 tools/invite.py add "Your name"`.
+- **On AWS, for your own circle only:** `infra/` is a CDK stack that keeps the ROM in a private bucket behind
+  invite codes. Never host it publicly. See [infra/README.md](infra/README.md).
+
 ## What's inside
 
 | Path | What it is |
 |---|---|
 | `game/` | The fork of pret/pokefirered. Our maps are `data/maps/Rematch*`, our C code `src/rematch*.c`, our map and sprite generators `tools/rematch/` |
 | `tools/rom-builder/` | The Docker toolchain behind `make.sh` |
+| `web/` | The browser page: questions, encoder, emulator, closing page |
+| `infra/` | The AWS CDK stack (private, invite-only hosting) |
+| `tools/` | `serve-web.py` (local server), `invite.py`, `read-messages.py`, `deploy.sh`, `cdk.sh` |
 | `docs/dialogue.md` | The whole script of the night, every line |
 
 ## Fan-made, with love
