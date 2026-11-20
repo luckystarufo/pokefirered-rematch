@@ -1,0 +1,45 @@
+{
+  "id": "MAP_REMATCH_CREATOR",
+  "name": "RematchCreator",
+  "layout": "LAYOUT_REMATCH_CREATOR",
+  "music": "MUS_SLOW_PALLET",
+  "region_map_section": "MAPSEC_POKEMON_LEAGUE",
+  "requires_flash": false,
+  "weather": "WEATHER_NONE",
+  "map_type": "MAP_TYPE_INDOOR",
+  "allow_cycling": false,
+  "allow_escaping": false,
+  "allow_running": false,
+  "show_map_name": false,
+  "floor_number": 0,
+  "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
+  "connections": null,
+  "object_events": [
+    {
+      "local_id": "LOCALID_CREATOR",
+      "type": "object",
+      "graphics_id": "OBJ_EVENT_GFX_GBA_KID",
+      "x": 5,
+      "y": 6,
+      "elevation": 3,
+      "movement_type": "MOVEMENT_TYPE_FACE_DOWN",
+      "movement_range_x": 1,
+      "movement_range_y": 1,
+      "trainer_type": "TRAINER_TYPE_NONE",
+      "trainer_sight_or_berry_tree_id": "0",
+      "script": "Rematch_Creator_EventScript_Creator",
+      "flag": "0"
+    }
+  ],
+  "warp_events": [
+    {
+      "x": 5,
+      "y": 12,
+      "elevation": 0,
+      "dest_map": "MAP_REMATCH_ARENA",
+      "dest_warp_id": "1"
+    }
+  ],
+  "coord_events": [],
+  "bg_events": []
+}

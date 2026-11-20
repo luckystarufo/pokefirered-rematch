@@ -1,0 +1,72 @@
+// SABRINA's room (the purple house in the garden): the SAFFRON GYM's entrance room with her old
+// leader's cushions as a rug. ALAKAZAM drifts around. Music: LAVENDER TOWN.
+
+mapscripts RematchSabrina_MapScripts {
+    MAP_SCRIPT_ON_FRAME_TABLE [
+        VAR_TEMP_1, 0: Rematch_Sabrina_EventScript_ComesToYou
+    ]
+}
+
+movement Rematch_Sabrina_Movement_ToYou { walk_down * 3 face_down }
+movement Rematch_Sabrina_Movement_Back { walk_up * 3 face_down }
+movement Rematch_Sabrina_Movement_FaceUp { face_up }
+
+// the first time you come in (on the mat, 5,7) she walks down to meet you; she knew you were coming
+script Rematch_Sabrina_EventScript_ComesToYou {
+    setvar(VAR_TEMP_1, 1)
+    if (flag(FLAG_REMATCH_TALKED_SABRINA)) {
+        end
+    }
+    lockall
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Sabrina_Movement_FaceUp)
+    applymovement(LOCALID_SABRINA_ROOM_SABRINA, Rematch_Sabrina_Movement_ToYou)
+    waitmovement(0)
+    call(Rematch_Sabrina_EventScript_Sabrina_FirstTalk)
+    applymovement(LOCALID_SABRINA_ROOM_SABRINA, Rematch_Sabrina_Movement_Back)
+    waitmovement(0)
+    releaseall
+    end
+}
+
+script Rematch_Sabrina_EventScript_Sabrina {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_SABRINA)) {
+        msgbox(format("SABRINA: You were going to ask me again. ...The answer is still no."))
+        release
+        end
+    }
+    call(Rematch_Sabrina_EventScript_Sabrina_FirstTalk)
+    release
+    end
+}
+
+script Rematch_Sabrina_EventScript_Sabrina_FirstTalk {
+    setflag(FLAG_REMATCH_TALKED_SABRINA)
+    setvar(VAR_0x8009, FAMECHECKER_SABRINA)   // their page in the FAME CHECKER
+    special(Rematch_UnlockFamePage)
+    msgbox(format("SABRINA: ...You came through that door at exactly the moment I saw you would. Three days ago."))
+    msgbox(format("When you came to my GYM, I sensed you long before you reached me.\pI did not sense that I would lose. It was the first thing in years I hadn't seen coming. I've treasured it ever since."))
+    msgbox(format("The KARATE MASTER from the DOJO next door sends his regards. We take tea together on Sundays now.\pHe still can't bend a spoon. I still can't break a board. We've stopped keeping score."))
+    msgbox(format("Don't ask me how tonight ends. I already know... and I won't spoil it for you."))
+    closemessage
+    return
+}
+
+script Rematch_Sabrina_EventScript_Alakazam {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_ALAKAZAM)) {
+        playmoncry(SPECIES_ALAKAZAM, CRY_MODE_NORMAL)
+        msgbox(format("ALAKAZAM is pretending its spoons are perfectly straight. They aren't."))
+        waitmoncry
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_ALAKAZAM)
+    playmoncry(SPECIES_ALAKAZAM, CRY_MODE_NORMAL)
+    msgbox(format("ALAKAZAM: Kazam.\pIt bends one of its spoons into a little heart... then quickly straightens it again, as if nothing happened."))
+    waitmoncry
+    release
+    end
+}

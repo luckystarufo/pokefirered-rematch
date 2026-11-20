@@ -1,0 +1,42 @@
+// World state for a fresh Rematch run.
+// Run once by Rematch_OnNewGame() (src/rematch.c) right after the vanilla
+// new-game reset. The C side has already set the name, gender, rival and the
+// three POKéMON from the personalization block; this sets everything else.
+// The player wakes up in the bedroom; the story starts with MOM downstairs
+// (data/scripts/rematch/house.pory).
+
+script Rematch_EventScript_NewGame {
+    // POKéMON / POKéDEX menus and running shoes from the start.
+    setflag(FLAG_SYS_POKEMON_GET)
+    setflag(FLAG_SYS_POKEDEX_GET)
+    setflag(FLAG_SYS_B_DASH)
+    // All eight KANTO BADGES: the player earned them back then, and the field moves need them
+    // (CUT: CASCADE, FLASH: BOULDER, SURF: SOUL) - CHARIZARD, PIKACHU and LAPRAS can use them from the menu.
+    setflag(FLAG_BADGE01_GET)
+    setflag(FLAG_BADGE02_GET)
+    setflag(FLAG_BADGE03_GET)
+    setflag(FLAG_BADGE04_GET)
+    setflag(FLAG_BADGE05_GET)
+    setflag(FLAG_BADGE06_GET)
+    setflag(FLAG_BADGE07_GET)
+    setflag(FLAG_BADGE08_GET)
+    setrespawn(HEAL_LOCATION_PALLET_TOWN)
+
+    // Reunion state (see include/constants/vars.h and flags.h).
+    setvar(VAR_REMATCH_PROGRESS, 0)
+    setvar(VAR_REMATCH_STATE, REMATCH_STATE_HOME)
+    // GIOVANNI stops you at the harbor door (catch-up, then the warm-up battle with the in-battle tips)
+    setvar(VAR_REMATCH_GIOVANNI_STOP, 0)
+    clearflag(FLAG_REMATCH_MET_GIOVANNI)
+    clearflag(FLAG_REMATCH_GREETED_LORELEI)
+    clearflag(FLAG_REMATCH_GREETED_BRUNO)
+    clearflag(FLAG_REMATCH_GREETED_AGATHA)
+    clearflag(FLAG_REMATCH_GREETED_LANCE)
+    clearflag(FLAG_REMATCH_HIDE_E4_MONS)
+    clearflag(FLAG_REMATCH_HIDE_E4)
+    clearflag(FLAG_REMATCH_GARDEN_CUT_TREE)
+    setflag(FLAG_REMATCH_HIDE_SPECTATORS)
+    setflag(FLAG_REMATCH_HIDE_ARENA_RIVAL)
+    clearflag(FLAG_DEFEATED_CHAMP)
+    end
+}

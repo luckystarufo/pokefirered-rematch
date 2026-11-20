@@ -1,0 +1,234 @@
+// The reunion hall (a café): the hosts. (The rival now waits in the garden, outside the back door;
+// his welcome scene plays there.) The CHEF talks up tonight's feast (no healing: that's the garden's POKéMON CENTER), the server sells café food, PROF. OAK and BLAINE talk shop with
+// ARCANINE beside them. The GYM LEADERS are in the garden behind the hall
+// (data/maps/RematchGarden); the ELITE FOUR in the lodge past it
+// (data/maps/RematchArena), where the battles and the ending happen.
+//
+// Doors: east rug -> plaza (front door), west rug -> garden (back door).
+
+mapscripts RematchHall_MapScripts {
+    // first time in from the harbor (you stand on the front rug, 13,12): the CHEF comes over
+    MAP_SCRIPT_ON_FRAME_TABLE [
+        VAR_TEMP_1, 0: Rematch_Hall_EventScript_ChefGreets
+    ]
+}
+
+movement Rematch_Hall_Movement_ChefToYou { walk_left * 3 walk_down * 3 face_down }
+movement Rematch_Hall_Movement_ChefBack { walk_up * 3 walk_right * 3 face_left }
+movement Rematch_Hall_Movement_FaceUp { face_up }
+movement Rematch_Hall_Movement_FaceRight { face_right }
+
+script Rematch_Hall_EventScript_ChefGreets {
+    setvar(VAR_TEMP_1, 1)
+    if (flag(FLAG_REMATCH_TALKED_CHEF)) {
+        end
+    }
+    lockall
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Hall_Movement_FaceUp)
+    applymovement(LOCALID_HALL_CHEF, Rematch_Hall_Movement_ChefToYou)
+    waitmovement(0)
+    call(Rematch_Hall_EventScript_Chef_FirstTalk)
+    applymovement(LOCALID_HALL_CHEF, Rematch_Hall_Movement_ChefBack)
+    waitmovement(0)
+    releaseall
+    end
+}
+
+// Heading for the back door (the garden) without having talked to PROF. OAK or BLAINE: OAK calls you back,
+// like MOM at home. Triggers on the row above the back-door rug (1..3, 11) and next to it on the bottom row
+// (4, 12); OAK stops on your right.
+movement Rematch_Hall_Movement_OakExclaim { emote_exclamation_mark delay_16 }
+movement Rematch_Hall_Movement_OakTo1 { walk_down * 4 walk_left * 5 face_left }
+movement Rematch_Hall_Movement_OakBackFrom1 { walk_right * 5 walk_up * 4 face_right }
+movement Rematch_Hall_Movement_OakTo2 { walk_down * 4 walk_left * 4 face_left }
+movement Rematch_Hall_Movement_OakBackFrom2 { walk_right * 4 walk_up * 4 face_right }
+movement Rematch_Hall_Movement_OakTo3 { walk_down * 4 walk_left * 3 face_left }
+movement Rematch_Hall_Movement_OakBackFrom3 { walk_right * 3 walk_up * 4 face_right }
+movement Rematch_Hall_Movement_OakTo4 { walk_down * 5 walk_left * 2 face_left }
+movement Rematch_Hall_Movement_OakBackFrom4 { walk_right * 2 walk_up * 5 face_right }
+
+script Rematch_Hall_EventScript_OakStopsYou {
+    setvar(VAR_TEMP_2, 1)
+    if (flag(FLAG_REMATCH_TALKED_OAK) || flag(FLAG_REMATCH_TALKED_BLAINE)) {
+        end
+    }
+    lockall
+    getplayerxy(VAR_0x8004, VAR_0x8005)
+    playse(SE_PIN)
+    applymovement(LOCALID_HALL_OAK, Rematch_Hall_Movement_OakExclaim)
+    waitmovement(0)
+    msgbox(format("PROF. OAK: {PLAYER}! Wait!"))
+    closemessage
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Hall_Movement_FaceRight)
+    if (var(VAR_0x8004) == 1) {
+        applymovement(LOCALID_HALL_OAK, Rematch_Hall_Movement_OakTo1)
+    } elif (var(VAR_0x8004) == 2) {
+        applymovement(LOCALID_HALL_OAK, Rematch_Hall_Movement_OakTo2)
+    } elif (var(VAR_0x8004) == 3) {
+        applymovement(LOCALID_HALL_OAK, Rematch_Hall_Movement_OakTo3)
+    } else {
+        applymovement(LOCALID_HALL_OAK, Rematch_Hall_Movement_OakTo4)
+    }
+    waitmovement(0)
+    call(Rematch_Hall_EventScript_Oak_FirstTalk)
+    if (var(VAR_0x8004) == 1) {
+        applymovement(LOCALID_HALL_OAK, Rematch_Hall_Movement_OakBackFrom1)
+    } elif (var(VAR_0x8004) == 2) {
+        applymovement(LOCALID_HALL_OAK, Rematch_Hall_Movement_OakBackFrom2)
+    } elif (var(VAR_0x8004) == 3) {
+        applymovement(LOCALID_HALL_OAK, Rematch_Hall_Movement_OakBackFrom3)
+    } else {
+        applymovement(LOCALID_HALL_OAK, Rematch_Hall_Movement_OakBackFrom4)
+    }
+    waitmovement(0)
+    releaseall
+    end
+}
+
+
+// ---------------------------------------------------------------------------
+// The rival: hints
+// ---------------------------------------------------------------------------
+
+
+// ---------------------------------------------------------------------------
+// PROF. OAK and BLAINE (no battles)
+// ---------------------------------------------------------------------------
+
+script Rematch_Hall_EventScript_Oak {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_OAK)) {
+        msgbox(format("PROF. OAK: Go on, {PLAYER}! Everyone's dying to see you. I'll save you a seat."))
+        release
+        end
+    }
+    call(Rematch_Hall_EventScript_Oak_FirstTalk)
+    release
+    end
+}
+
+script Rematch_Hall_EventScript_Oak_FirstTalk {
+    setflag(FLAG_REMATCH_TALKED_OAK)
+    setvar(VAR_0x8009, FAMECHECKER_OAK)   // their page in the FAME CHECKER
+    special(Rematch_UnlockFamePage)
+    msgbox(format("PROF. OAK: {PLAYER}! My, my! Is that CHARIZARD? I remember a tiny CHARMANDER that chewed a hole in my lab coat!"))
+    msgbox(format("BLAINE and I were just arguing about the new kids. He wants to start a school for young trainers.\pI keep telling him: give a child a POKéMON and a map, and get out of the way. It worked for you!"))
+    msgbox(format("I still keep your POKéDEX on my desk. Some evenings I flip through it, just to see how far you went."))
+    closemessage
+    return
+}
+
+script Rematch_Hall_EventScript_Blaine {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_BLAINE)) {
+        msgbox(format("BLAINE: Bonus question! Where does ARCANINE nap? ...By the fire! Correct again!"))
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_BLAINE)
+    setvar(VAR_0x8009, FAMECHECKER_BLAINE)   // their page in the FAME CHECKER
+    special(Rematch_UnlockFamePage)
+    msgbox(format("BLAINE: Hah! {PLAYER}! Pop quiz! Which trainer answered every one of my questions... and then melted my RAPIDASH?\p...You! Correct!"))
+    msgbox(format("A rematch? Hah! Not today, champ. My knees creak louder than my volcano these days.\pAnd ARCANINE here... he's an old dog now. Loyal as ever, but he'd rather nap by the fire."))
+    msgbox(format("These days I spend my time teaching the young ones. Fire is easy. Patience is the hard part!\pOAK says just let them go explore. I say teach them the quiz first! We've been at it all evening."))
+    msgbox(format("BLAINE: Final question! What does CHARIZARD deserve, after all these years?\p...This! Correct!"))
+    giveitem(ITEM_CHARCOAL)
+    msgbox(format("CHARCOAL! A little fuel for that old flame. Hah!"))
+    release
+    end
+}
+
+script Rematch_Hall_EventScript_Arcanine {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_ARCANINE)) {
+        playmoncry(SPECIES_ARCANINE, CRY_MODE_NORMAL)
+        msgbox(format("ARCANINE is fast asleep. Its paws twitch. It's dreaming of running."))
+        waitmoncry
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_ARCANINE)
+    playmoncry(SPECIES_ARCANINE, CRY_MODE_NORMAL)
+    msgbox(format("ARCANINE: Wooo...\pIts muzzle has gone a little grey. It thumps its tail at you slowly."))
+    waitmoncry
+    release
+    end
+}
+
+// ---------------------------------------------------------------------------
+// Café staff: the CHEF (dinner is paid for; the power is half out); the server sells
+// café food and drinks (the NURSE and the shop are in the garden).
+// ---------------------------------------------------------------------------
+
+script Rematch_Hall_EventScript_Chef {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_CHEF)) {
+        msgbox(format("CHEF: The feast is later, {PLAYER}! Assuming SURGE gets my ovens back."))
+        release
+        end
+    }
+    call(Rematch_Hall_EventScript_Chef_FirstTalk)
+    release
+    end
+}
+
+script Rematch_Hall_EventScript_Chef_FirstTalk {
+    setflag(FLAG_REMATCH_TALKED_CHEF)
+    msgbox(format("CHEF: Welcome, welcome! You must be {PLAYER}! Somebody booked the whole café for tonight. Paid in advance, and left no name!\pDinner's covered. Drinks, though... those are on you. Ask at the counter!"))
+    msgbox(format("The kitchen's open all night.\pLater we're pushing every table together into one long one for the big feast..."))
+    msgbox(format("...if the power comes back on in time, that is. Half my ovens are dark.\pLT. SURGE swore he'd fix it. Over at the POWER PLANT, if you see him."))
+    msgbox(format("Oh, and here! I baked this in the one oven that still works."))
+    giveitem(ITEM_LAVA_COOKIE)
+    msgbox(format("A LAVA COOKIE, to hold you over until dinner. On the house!"))
+    closemessage
+    return
+}
+
+// A SAFFRON gate guard waiting at the drinks counter. Back then the player gave him a drink (TEA) at the gate.
+movement Rematch_Hall_Movement_Exclaim { emote_exclamation_mark }
+script Rematch_Hall_EventScript_Guard {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_GUARD)) {
+        msgbox(format("GUARD: If you ever find TEA again... you know where I'll be."))
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_GUARD)
+    applymovement(LOCALID_HALL_GUARD, Rematch_Hall_Movement_Exclaim)
+    waitmovement(0)
+    msgbox(format("GUARD: You! You're the kid who gave me TEA at the SAFFRON gate!\pI was so thirsty that day, I thought I'd faint on duty."))
+    msgbox(format("I've been chasing that taste ever since.\p...They don't serve it here. I asked. Twice."))
+    release
+    end
+}
+
+mart Rematch_Hall_CafeMenu {
+    ITEM_FRESH_WATER
+    ITEM_SODA_POP
+    ITEM_LEMONADE
+    ITEM_MOOMOO_MILK
+    ITEM_BERRY_JUICE
+}
+
+script Rematch_Hall_EventScript_Waitress {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_WAITRESS)) {
+        msgbox(format("The LEMONADE's on ice whenever you want one, {PLAYER}!"))
+        pokemart(Rematch_Hall_CafeMenu)
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_WAITRESS)
+    msgbox(format("Hi there! Something to drink? Our LEMONADE is the same recipe as the CELADON rooftop vending machines.\pAnd no, we don't serve TEA. Every guard from SAFFRON has already asked."))
+    pokemart(Rematch_Hall_CafeMenu)
+    msgbox(format("Enjoy the party, {PLAYER}!"))
+    release
+    end
+}
+

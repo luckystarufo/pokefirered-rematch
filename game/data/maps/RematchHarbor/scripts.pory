@@ -1,0 +1,163 @@
+// The arrival harbor (a copy of the Sevii harbor with a widened platform,
+// layout generated into data/layouts/RematchHarbor). The ferry lands the
+// player at (8,6); the door at (8,2) opens straight into the reunion hall.
+//
+// GIOVANNI, two former TEAM ROCKET grunts and MEOWTH linger on the platform.
+// His warm-up battle is the tutorial: it runs with RIVAL_BATTLE_TUTORIAL,
+// which turns on the in-battle tips (rewritten in his voice in
+// src/battle_message.c). No later battle shows them.
+// Heading for the door first steps on the trigger tile (8,3) and GIOVANNI
+// walks over (VAR_REMATCH_GIOVANNI_STOP == 0).
+
+mapscripts RematchHarbor_MapScripts {}
+
+movement Rematch_Harbor_Movement_GiovanniToDoor {
+    walk_up * 2
+    walk_right
+    face_right
+}
+movement Rematch_Harbor_Movement_GiovanniBack {
+    walk_left
+    walk_down * 2
+    face_left
+}
+movement Rematch_Harbor_Movement_PlayerFaceLeft { face_left }
+
+script Rematch_Harbor_EventScript_GiovanniStopsYou {
+    lockall
+    msgbox(format("...{PLAYER}. A moment, if you would."))
+    closemessage
+    applymovement(LOCALID_HARBOR_GIOVANNI, Rematch_Harbor_Movement_GiovanniToDoor)
+    waitmovement(0)
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Harbor_Movement_PlayerFaceLeft)
+    waitmovement(0)
+    call(Rematch_Harbor_EventScript_GiovanniTalk)
+    applymovement(LOCALID_HARBOR_GIOVANNI, Rematch_Harbor_Movement_GiovanniBack)
+    waitmovement(0)
+    releaseall
+    end
+}
+
+script Rematch_Harbor_EventScript_Giovanni {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_MET_GIOVANNI)) {
+        msgbox(format("GIOVANNI: Go on in. I'll follow... in a little while.\pIt's been a long time since anyone held a door open for me."))
+        release
+        end
+    }
+    call(Rematch_Harbor_EventScript_GiovanniTalk)
+    release
+    end
+}
+
+script Rematch_Harbor_EventScript_GiovanniTalk {
+    msgbox(format("GIOVANNI: So. The child who brought down TEAM ROCKET. Taller now."))
+    msgbox(format("An invitation came for me too. No name on it. Me, of all people.\pAfter everything I did... I wasn't sure I deserved a seat at that table."))
+    msgbox(format("So I've stayed out here a while, catching up with these two. They followed me once.\pNow one runs a noodle stand, and the other has a daughter who wants to be a GYM LEADER."))
+    msgbox(format("Before you go in, indulge an old man. One friendly battle.\pNot to win. Just to shake the rust off. For both of us."))
+    msgbox(format("I only brought MEOWTH today. These days, it's the only partner I need."))
+    closemessage
+    setvar(VAR_LAST_TALKED, LOCALID_HARBOR_GIOVANNI)
+    trainerbattle_earlyrival(TRAINER_REMATCH_GIOVANNI, RIVAL_BATTLE_TUTORIAL, "Hm. You haven't\nlost your touch.", "Hm. A little\nrusty, are we?")
+    setflag(FLAG_REMATCH_MET_GIOVANNI)
+    setvar(VAR_0x8009, FAMECHECKER_GIOVANNI)   // their page in the FAME CHECKER
+    special(Rematch_UnlockFamePage)
+    setvar(VAR_REMATCH_GIOVANNI_STOP, 1)
+    msgbox(format("GIOVANNI: Good. That's the feeling. You'll want it in there."))
+    msgbox(format("Go on, {PLAYER}. That rival of yours has been checking the door every five minutes."))
+    closemessage
+    return
+}
+
+script Rematch_Harbor_EventScript_Meowth {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_MEOWTH)) {
+        playmoncry(SPECIES_MEOWTH, CRY_MODE_NORMAL)
+        msgbox(format("MEOWTH is fussing with its bow tie. It's crooked now. It looks to GIOVANNI for help."))
+        waitmoncry
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_MEOWTH)
+    playmoncry(SPECIES_MEOWTH, CRY_MODE_NORMAL)
+    msgbox(format("MEOWTH: Meowth!\pIt's wearing a tiny bow tie. GIOVANNI must have tied it himself."))
+    waitmoncry
+    release
+    end
+}
+
+script Rematch_Harbor_EventScript_GruntM {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_GRUNT_M)) {
+        msgbox(format("Come by CELADON sometime. First bowl's on the house. Second one too."))
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_GRUNT_M)
+    msgbox(format("Hey... it's you! The kid who wrecked our hideout under the GAME CORNER! Look at you now, all grown up!\pHa! No hard feelings. Best thing that ever happened to me, honestly."))
+    msgbox(format("I run a noodle stand in CELADON now. My son helps out on weekends.\pThe BOSS came by last month and ordered three bowls. Didn't say a word. Just ate."))
+    release
+    end
+}
+
+script Rematch_Harbor_EventScript_GruntF {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_GRUNT_F)) {
+        msgbox(format("My little girl here has been practising GYM LEADER poses in the mirror all week."))
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_GRUNT_F)
+    msgbox(format("I used to steal POKéMON. Now I volunteer at the POKéMON CENTER in LAVENDER.\pTurns out I like making them better more than taking them."))
+    msgbox(format("This is my little girl. She's been dying to meet you all week."))
+    release
+    end
+}
+
+// GRUNT F's little girl, peeking out from behind her mother. She wants to be a WATER GYM LEADER.
+movement Rematch_Harbor_Movement_DoubleExclaim { emote_double_exclamation_mark }
+script Rematch_Harbor_EventScript_Daughter {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_DAUGHTER)) {
+        msgbox(format("Look! I'm keeping it in my pocket. The one with the zip!"))
+        release
+        end
+    }
+    applymovement(LOCALID_HARBOR_DAUGHTER, Rematch_Harbor_Movement_DoubleExclaim)
+    waitmovement(0)
+    call(Rematch_Harbor_EventScript_DaughterAsks)
+    release
+    end
+}
+
+script Rematch_Harbor_EventScript_DaughterAsks {
+    msgbox(format("I'm gonna be a GYM LEADER when I grow up! A WATER one, like MISTY!"))
+    msgbox(format("Mom says you're super famous. Can I... can I have your autograph?"), MSGBOX_YESNO)
+    if (var(VAR_RESULT) == YES) {
+        setflag(FLAG_REMATCH_TALKED_DAUGHTER)
+        msgbox(format("She holds up a crumpled piece of paper.\pYou sign it as neatly as you can.\pYay! I'm never washing this hand again!"))
+    } else {
+        msgbox(format("Aww... okay! I'll ask again when I'm a GYM LEADER. Then you'll want MY autograph!"))
+    }
+    closemessage
+    return
+}
+
+script Rematch_Harbor_EventScript_Sailor {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_SAILOR)) {
+        msgbox(format("SAILOR: Curry's still on, {PLAYER}! The café's right through that door."))
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_SAILOR)
+    msgbox(format("SAILOR: Welcome ashore, {PLAYER}! Mind your step, the gangplank's a bit short tonight.\pThe café's right through that door. Smells like somebody's making curry!"))
+    release
+    end
+}

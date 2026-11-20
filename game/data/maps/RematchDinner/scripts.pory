@@ -1,0 +1,280 @@
+// The dinner finale: after the creator's room, everyone from tonight sits at one long table in the café
+// (layout and seating: tools/rematch/rooms/dinner.py). Music: the S.S. ANNE party theme (the map's music) for
+// the feast, then the FireRed ending theme from "CHEERS!" to THE END. The camera pans from the head of the table, the CHEF and the noodle guy serve,
+// five toasts and {PLAYER}'s own, then "CHEERS!", a slow fade, and THE END (src/credits.c), which loops back
+// to the title screen. Up to 40 characters can be on screen at once (OBJECT_EVENTS_COUNT was raised for this).
+
+mapscripts RematchDinner_MapScripts {
+    MAP_SCRIPT_ON_FRAME_TABLE [
+        VAR_REMATCH_STATE, REMATCH_STATE_DINNER: Rematch_Dinner_EventScript_Feast
+    ]
+}
+
+movement Rematch_Dinner_Movement_CameraPan {
+    delay_16 * 2
+    walk_slow_right * 7
+}
+// they bring the food out of the kitchen and stand together off the table's right end, watching
+movement Rematch_Dinner_Movement_ChefServes {
+    walk_left
+    face_left
+}
+movement Rematch_Dinner_Movement_GruntServes {
+    delay_8
+    walk_left
+    face_left
+}
+movement Rematch_Dinner_Movement_FaceRight { face_right }
+movement Rematch_Dinner_Movement_FaceLeft { face_left }
+movement Rematch_Dinner_Movement_FaceUp { face_up }
+movement Rematch_Dinner_Movement_FaceDown { face_down }
+movement Rematch_Dinner_Movement_HopDown { jump_in_place_down }
+movement Rematch_Dinner_Movement_HopUp { jump_in_place_up }
+movement Rematch_Dinner_Movement_HopLeft { jump_in_place_left }
+movement Rematch_Dinner_Movement_HopRight { jump_in_place_right }
+movement Rematch_Dinner_Movement_Exclaim { emote_exclamation_mark }
+
+script Rematch_Dinner_EventScript_Feast {
+    lockall
+    setvar(VAR_REMATCH_STATE, REMATCH_STATE_FINALE)
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Dinner_Movement_FaceRight)
+    waitmovement(0)
+    // the camera drifts from the head of the table along to its middle while the food comes out
+    special(SpawnCameraObject)
+    applymovement(OBJ_EVENT_ID_CAMERA, Rematch_Dinner_Movement_CameraPan)
+    waitmovement(OBJ_EVENT_ID_CAMERA)
+    // once the camera has settled (and they're loaded, just off the right edge) the CHEF and the noodle guy walk in
+    applymovement(LOCALID_DINNER_CHEF, Rematch_Dinner_Movement_ChefServes)
+    applymovement(LOCALID_DINNER_GRUNT_M, Rematch_Dinner_Movement_GruntServes)
+    waitmovement(LOCALID_DINNER_CHEF)
+    waitmovement(LOCALID_DINNER_GRUNT_M)
+    msgbox(format("CHEF: Make room, make room! Hot plates coming through!"))
+    msgbox(format("NOODLE GUY: Noodles, CELADON style! The BOSS's bowl gets extra."))
+    closemessage
+    delay(20)
+
+    // the toasts
+    applymovement(LOCALID_DINNER_OAK, Rematch_Dinner_Movement_HopLeft)
+    waitmovement(0)
+    msgbox(format("PROF. OAK: Everyone! A toast!"))
+    msgbox(format("To old friends... and to every journey that led back to this table."))
+    closemessage
+
+    applymovement(LOCALID_DINNER_BROCK, Rematch_Dinner_Movement_HopDown)
+    waitmovement(0)
+    msgbox(format("BROCK: To the CHEF! Feeding a whole island with half the ovens dark...\pTake it from a guy who cooked for nine little brothers and sisters. That's love, right there."))
+    closemessage
+
+    applymovement(LOCALID_DINNER_GIOVANNI, Rematch_Dinner_Movement_HopUp)
+    waitmovement(0)
+    msgbox(format("GIOVANNI: ...To second chances.\pAnd to my old friend with the noodles. You were always better at this than at anything I ever asked of you."))
+    closemessage
+    applymovement(LOCALID_DINNER_GRUNT_M, Rematch_Dinner_Movement_Exclaim)
+    waitmovement(0)
+    msgbox(format("NOODLE GUY: B-BOSS...! ...Extra noodles. For everyone."))
+    closemessage
+
+    applymovement(LOCALID_DINNER_AGATHA, Rematch_Dinner_Movement_HopDown)
+    waitmovement(0)
+    msgbox(format("AGATHA: Hee hee. To memory. The only thing in this world that never gets old.\p...Unlike the rest of us."))
+    closemessage
+
+    applymovement(LOCALID_DINNER_SABRINA, Rematch_Dinner_Movement_HopDown)
+    waitmovement(0)
+    msgbox(format("SABRINA: To the future. I've seen it.\p...I won't spoil it. But all of you are in it."))
+    closemessage
+    delay(20)
+
+    // everyone turns to the head of the table, where {PLAYER} and {RIVAL} sit side by side
+    call(Rematch_Dinner_EventScript_AllFaceLeft)
+    delay(30)
+    applymovement(LOCALID_DINNER_RIVAL, Rematch_Dinner_Movement_FaceUp)
+    waitmovement(0)
+    msgbox(format("{RIVAL}: ...You say it, {PLAYER}. You were always better at this part."))
+    closemessage
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Dinner_Movement_HopRight)
+    waitmovement(0)
+    msgbox(format("{PLAYER}: To all of you. Thank you for waiting for us.\pWe missed this. We missed you."))
+    closemessage
+    applymovement(LOCALID_DINNER_RIVAL, Rematch_Dinner_Movement_HopRight)
+    waitmovement(0)
+    msgbox(format("{RIVAL}: ...Yeah. What they said.\pWe love you guys. ...Don't make it weird."))
+    closemessage
+    delay(30)
+    msgbox(format("EVERYONE: CHEERS!"))
+    closemessage
+    fadenewbgm(MUS_CREDITS)     // the party music gives way to the FireRed ending theme, which plays on to THE END
+    // two waves: every hop adds a shadow sprite, and everyone at once could run out of sprites
+    call(Rematch_Dinner_EventScript_HopTop)
+    playmoncry(SPECIES_PIKACHU, CRY_MODE_NORMAL)
+    waitmovement(0)
+    call(Rematch_Dinner_EventScript_HopBottom)
+    waitmovement(0)
+    call(Rematch_Dinner_EventScript_HopMons)
+    waitmovement(0)
+    waitmoncry
+    call(Rematch_Dinner_EventScript_HopTop)
+    waitmovement(0)
+    call(Rematch_Dinner_EventScript_HopBottom)
+    waitmovement(0)
+    delay(30)
+
+    // the group photo
+    msgbox(format("PROF. OAK: Wait, wait! Everyone squeeze in! One photo, for old times' sake!"))
+    closemessage
+    call(Rematch_Dinner_EventScript_AllFaceDown)
+    delay(40)
+    playse(SE_CLICK)          // the camera shutter ("kasha")
+    fadescreenspeed(FADE_TO_WHITE, 0)
+    fadescreenspeed(FADE_FROM_WHITE, 2)
+    playfanfare(MUS_PHOTO)
+    waitfanfare
+    delay(90)
+    fadescreenspeed(FADE_TO_BLACK, 30)
+    delay(60)
+
+    // credits, on black: each line on its own, no button needed
+    textcolor(NPC_TEXT_COLOR_NEUTRAL)
+    message(format("Starring {PLAYER}"))
+    waitmessage
+    delay(100)
+    message(format("and {RIVAL}"))
+    waitmessage
+    delay(100)
+    message(format("with everyone who came tonight"))
+    waitmessage
+    delay(120)
+    message(format("Made with love, for the friends I wanted at this table."))
+    waitmessage
+    delay(180)
+    closemessage
+    delay(30)
+    special(Rematch_DoTheEnd)
+    waitstate
+    releaseall
+    end
+}
+
+script Rematch_Dinner_EventScript_AllFaceLeft {
+    applymovement(LOCALID_DINNER_RIVAL, Rematch_Dinner_Movement_FaceUp)
+    applymovement(LOCALID_DINNER_MISTY, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_BROCK, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_ERIKA, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_SURGE, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_KOGA, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_SABRINA, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_LORELEI, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_BRUNO, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_AGATHA, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_BLAINE, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_LANCE, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_LEX, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_NYA, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_CREATOR, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_GIOVANNI, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_GRUNT_F, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_DAUGHTER, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_GUARD, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_JED, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_LEA, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_GURU, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_BROTHER, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_BIKE_SHOP, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_CHEF, Rematch_Dinner_Movement_FaceLeft)
+    applymovement(LOCALID_DINNER_GRUNT_M, Rematch_Dinner_Movement_FaceLeft)
+    waitmovement(0)
+    return
+}
+
+script Rematch_Dinner_EventScript_HopTop {
+    applymovement(LOCALID_DINNER_RIVAL, Rematch_Dinner_Movement_HopUp)
+    applymovement(LOCALID_DINNER_MISTY, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_BROCK, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_ERIKA, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_SURGE, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_KOGA, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_SABRINA, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_LORELEI, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_BRUNO, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_AGATHA, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_LANCE, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_CREATOR, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_OAK, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_BLAINE, Rematch_Dinner_Movement_HopLeft)
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Dinner_Movement_HopRight)
+    return
+}
+
+script Rematch_Dinner_EventScript_HopMons {
+    applymovement(LOCALID_DINNER_PIKACHU, Rematch_Dinner_Movement_HopUp)
+    applymovement(LOCALID_DINNER_MEOWTH, Rematch_Dinner_Movement_HopRight)
+    applymovement(LOCALID_DINNER_PSYDUCK, Rematch_Dinner_Movement_HopDown)
+    applymovement(LOCALID_DINNER_CLEFAIRY, Rematch_Dinner_Movement_HopDown)
+    applymovement(LOCALID_DINNER_CHANSEY, Rematch_Dinner_Movement_HopDown)
+    applymovement(LOCALID_DINNER_MACHOKE, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_SNORLAX, Rematch_Dinner_Movement_HopDown)
+    applymovement(LOCALID_DINNER_JIGGLYPUFF, Rematch_Dinner_Movement_HopRight)
+    applymovement(LOCALID_DINNER_LAPRAS, Rematch_Dinner_Movement_HopDown)
+    applymovement(LOCALID_DINNER_SLOWPOKE, Rematch_Dinner_Movement_HopLeft)
+    return
+}
+
+script Rematch_Dinner_EventScript_HopBottom {
+    applymovement(LOCALID_DINNER_LEX, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_NYA, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_GIOVANNI, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_GRUNT_F, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_DAUGHTER, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_GUARD, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_JED, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_LEA, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_GURU, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_BROTHER, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_BIKE_SHOP, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_CHEF, Rematch_Dinner_Movement_HopLeft)
+    applymovement(LOCALID_DINNER_GRUNT_M, Rematch_Dinner_Movement_HopLeft)
+    return
+}
+
+script Rematch_Dinner_EventScript_AllFaceDown {
+    applymovement(LOCALID_DINNER_OAK, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_BROCK, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_GIOVANNI, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_AGATHA, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_SABRINA, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_RIVAL, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_MISTY, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_ERIKA, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_SURGE, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_KOGA, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_LORELEI, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_BRUNO, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_LANCE, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_CREATOR, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_BLAINE, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_PIKACHU, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_MEOWTH, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_PSYDUCK, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_CLEFAIRY, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_CHANSEY, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_MACHOKE, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_SNORLAX, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_JIGGLYPUFF, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_LAPRAS, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_SLOWPOKE, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_LEX, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_NYA, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_GRUNT_F, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_DAUGHTER, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_GUARD, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_JED, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_LEA, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_GURU, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_BROTHER, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_BIKE_SHOP, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_CHEF, Rematch_Dinner_Movement_FaceDown)
+    applymovement(LOCALID_DINNER_GRUNT_M, Rematch_Dinner_Movement_FaceDown)
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Dinner_Movement_FaceDown)
+    waitmovement(0)
+    return
+}

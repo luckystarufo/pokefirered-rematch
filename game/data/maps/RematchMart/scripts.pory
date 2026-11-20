@@ -1,0 +1,34 @@
+// The garden's POKé MART: one clerk with a small shelf of essentials (BUY / SELL / SEE YA).
+
+mapscripts RematchMart_MapScripts {}
+
+mart Rematch_Mart_Items {
+    ITEM_POKE_BALL
+    ITEM_POTION
+    ITEM_SUPER_POTION
+    ITEM_HYPER_POTION
+    ITEM_FULL_HEAL
+    ITEM_REVIVE
+}
+
+script Rematch_Mart_EventScript_Clerk {
+    lock
+    faceplayer
+    if (!flag(FLAG_REMATCH_TALKED_CLERK)) {
+        setflag(FLAG_REMATCH_TALKED_CLERK)
+        msgbox(format("Oh! You're the one who carried PROF. OAK's PARCEL out of our VIRIDIAN store!\pI still think of you every time a package comes in."))
+        msgbox(format("...Speaking of packages, everything costs more to ship these days. Tariffs, they say.\pSo the prices went up. Again. Don't look at me, I just work here!"))
+        message(format("Go on, take your time and look around!"))
+        waitmessage
+        pokemart(Rematch_Mart_Items)
+        msgbox(format("Come back anytime. It was really good to see you."))
+        release
+        end
+    }
+    message(Text_MayIHelpYou)
+    waitmessage
+    pokemart(Rematch_Mart_Items)
+    msgbox(Text_PleaseComeAgain)
+    release
+    end
+}

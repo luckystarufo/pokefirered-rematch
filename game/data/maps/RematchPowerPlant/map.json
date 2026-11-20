@@ -1,0 +1,153 @@
+{
+  "id": "MAP_REMATCH_POWER_PLANT",
+  "name": "RematchPowerPlant",
+  "layout": "LAYOUT_REMATCH_POWER_PLANT",
+  "music": "MUS_POKE_MANSION",
+  "region_map_section": "MAPSEC_SIX_ISLAND",
+  "requires_flash": false,
+  "weather": "WEATHER_NONE",
+  "map_type": "MAP_TYPE_INDOOR",
+  "allow_cycling": false,
+  "allow_escaping": false,
+  "allow_running": true,
+  "show_map_name": false,
+  "floor_number": 0,
+  "battle_scene": "MAP_BATTLE_SCENE_NORMAL",
+  "connections": null,
+  "object_events": [
+    {
+      "local_id": "LOCALID_SURGE_ROOM_SURGE",
+      "type": "object",
+      "graphics_id": "OBJ_EVENT_GFX_LT_SURGE",
+      "x": 7,
+      "y": 9,
+      "elevation": 3,
+      "movement_type": "MOVEMENT_TYPE_FACE_UP",
+      "movement_range_x": 1,
+      "movement_range_y": 1,
+      "trainer_type": "TRAINER_TYPE_NONE",
+      "trainer_sight_or_berry_tree_id": "0",
+      "script": "Rematch_PowerPlant_EventScript_Surge",
+      "flag": "0"
+    },
+    {
+      "local_id": "LOCALID_SURGE_ROOM_AIDE",
+      "type": "object",
+      "graphics_id": "OBJ_EVENT_GFX_SCIENTIST",
+      "x": 8,
+      "y": 9,
+      "elevation": 3,
+      "movement_type": "MOVEMENT_TYPE_FACE_UP",
+      "movement_range_x": 1,
+      "movement_range_y": 1,
+      "trainer_type": "TRAINER_TYPE_NONE",
+      "trainer_sight_or_berry_tree_id": "0",
+      "script": "Rematch_PowerPlant_EventScript_Aide",
+      "flag": "0"
+    },
+    {
+      "local_id": "LOCALID_SURGE_ROOM_RAICHU",
+      "type": "object",
+      "graphics_id": "OBJ_EVENT_GFX_REMATCH_RAICHU",
+      "x": 3,
+      "y": 11,
+      "elevation": 3,
+      "movement_type": "MOVEMENT_TYPE_WANDER_AROUND",
+      "movement_range_x": 2,
+      "movement_range_y": 2,
+      "trainer_type": "TRAINER_TYPE_NONE",
+      "trainer_sight_or_berry_tree_id": "0",
+      "script": "Rematch_PowerPlant_EventScript_Raichu",
+      "flag": "0"
+    },
+    {
+      "local_id": "LOCALID_SURGE_ROOM_VOLTORB",
+      "type": "object",
+      "graphics_id": "OBJ_EVENT_GFX_VOLTORB",
+      "x": 11,
+      "y": 12,
+      "elevation": 3,
+      "movement_type": "MOVEMENT_TYPE_WANDER_AROUND",
+      "movement_range_x": 2,
+      "movement_range_y": 2,
+      "trainer_type": "TRAINER_TYPE_NONE",
+      "trainer_sight_or_berry_tree_id": "0",
+      "script": "Rematch_PowerPlant_EventScript_Voltorb",
+      "flag": "0"
+    }
+  ],
+  "warp_events": [
+    {
+      "x": 7,
+      "y": 16,
+      "elevation": 0,
+      "dest_map": "MAP_REMATCH_GARDEN",
+      "dest_warp_id": "4"
+    },
+    {
+      "x": 8,
+      "y": 15,
+      "elevation": 0,
+      "dest_map": "MAP_REMATCH_GARDEN",
+      "dest_warp_id": "4"
+    },
+    {
+      "x": 9,
+      "y": 16,
+      "elevation": 0,
+      "dest_map": "MAP_REMATCH_GARDEN",
+      "dest_warp_id": "4"
+    }
+  ],
+  "coord_events": [],
+  "bg_events": [
+    {
+      "type": "sign",
+      "x": 5,
+      "y": 8,
+      "elevation": 0,
+      "player_facing_dir": "BG_EVENT_PLAYER_FACING_NORTH",
+      "script": "Rematch_PowerPlant_EventScript_Machine"
+    },
+    {
+      "type": "sign",
+      "x": 6,
+      "y": 8,
+      "elevation": 0,
+      "player_facing_dir": "BG_EVENT_PLAYER_FACING_NORTH",
+      "script": "Rematch_PowerPlant_EventScript_Machine"
+    },
+    {
+      "type": "sign",
+      "x": 7,
+      "y": 8,
+      "elevation": 0,
+      "player_facing_dir": "BG_EVENT_PLAYER_FACING_NORTH",
+      "script": "Rematch_PowerPlant_EventScript_Machine"
+    },
+    {
+      "type": "sign",
+      "x": 8,
+      "y": 8,
+      "elevation": 0,
+      "player_facing_dir": "BG_EVENT_PLAYER_FACING_NORTH",
+      "script": "Rematch_PowerPlant_EventScript_Machine"
+    },
+    {
+      "type": "sign",
+      "x": 9,
+      "y": 8,
+      "elevation": 0,
+      "player_facing_dir": "BG_EVENT_PLAYER_FACING_NORTH",
+      "script": "Rematch_PowerPlant_EventScript_Machine"
+    },
+    {
+      "type": "sign",
+      "x": 10,
+      "y": 8,
+      "elevation": 0,
+      "player_facing_dir": "BG_EVENT_PLAYER_FACING_NORTH",
+      "script": "Rematch_PowerPlant_EventScript_Machine"
+    }
+  ]
+}

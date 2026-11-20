@@ -1,0 +1,61 @@
+// The garden's POKéMON CENTER: the usual NURSE, plus a CHANSEY. The 2nd floor is
+// closed for maintenance (stepping on the escalator turns you back) and the PC is switched off.
+
+// Every FireRed POKéMON CENTER runs CableClub_OnResume on entry: it marks the "friend waiting in the UNION
+// ROOM" name as empty. Without it that name holds garbage, the NURSE's script tries to print it after
+// healing, and the overlong text overwrites memory (the crash found in play-testing).
+mapscripts RematchPokemonCenter_MapScripts {
+    MAP_SCRIPT_ON_RESUME: CableClub_OnResume
+}
+
+script Rematch_PokemonCenter_EventScript_Nurse {
+    lock
+    faceplayer
+    if (!flag(FLAG_REMATCH_TALKED_NURSE)) {
+        setflag(FLAG_REMATCH_TALKED_NURSE)
+        msgbox(format("Oh! {PLAYER}! I'd know that CHARIZARD anywhere. You must have visited every one of our CENTERS back then."))
+        message(format("Here, let me look after them for a moment. Just like always."))
+        waitmessage
+        call(EventScript_PkmnCenterNurse_TakeAndHealPkmn)
+        msgbox(format("There. Good as new.\pIt's so good to have you back, {PLAYER}. Enjoy your night."))
+        release
+        end
+    }
+    call(EventScript_PkmnCenterNurse)
+    release
+    end
+}
+
+script Rematch_PokemonCenter_EventScript_PC {
+    msgbox(format("The PC's screen is dark.\pA sticky note on it says: “No work tonight. Go enjoy the party!”"), MSGBOX_SIGN)
+}
+
+// The escalator is there, but the 2nd floor is closed: stepping on it turns you back.
+movement Rematch_PokemonCenter_Movement_StepOffEscalator { walk_right }
+script Rematch_PokemonCenter_EventScript_Escalator {
+    lockall
+    msgbox(format("The escalator isn't moving.\pA sign hangs from a rope: “2nd FLOOR CLOSED for maintenance. Sorry for the trouble!”"))
+    closemessage
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_PokemonCenter_Movement_StepOffEscalator)
+    waitmovement(0)
+    releaseall
+    end
+}
+
+script Rematch_PokemonCenter_EventScript_Chansey {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_CHANSEY)) {
+        playmoncry(SPECIES_CHANSEY, CRY_MODE_NORMAL)
+        msgbox(format("CHANSEY still hasn't taken a single step. The EGG is a very important job."))
+        waitmoncry
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_CHANSEY)
+    playmoncry(SPECIES_CHANSEY, CRY_MODE_NORMAL)
+    msgbox(format("CHANSEY: Chaaan-sey!\pIt's carrying an EGG very carefully, as if it's the most important job in the world."))
+    waitmoncry
+    release
+    end
+}

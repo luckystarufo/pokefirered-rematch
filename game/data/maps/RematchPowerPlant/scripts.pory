@@ -1,0 +1,74 @@
+// LT. SURGE's POWER PLANT: the island lost power before the party. SURGE and one of PROF. OAK's aides are
+// trying to get CELIO's network machine (borrowed from ONE ISLAND) to reroute the generators, so the café
+// can serve tonight's reunion dinner. RAICHU and VOLTORB roam the hall.
+
+mapscripts RematchPowerPlant_MapScripts {}
+
+script Rematch_PowerPlant_EventScript_Surge {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_SURGE)) {
+        msgbox(format("LT. SURGE: Still elbow-deep, soldier! Dinner on time. That's an order!"))
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_SURGE)
+    setvar(VAR_0x8009, FAMECHECKER_LTSURGE)   // their page in the FAME CHECKER
+    special(Rematch_UnlockFamePage)
+    msgbox(format("LT. SURGE: Hey, soldier! Perfect timing! The whole island blacked out an hour before the party!"))
+    msgbox(format("We borrowed this network machine from CELIO over on ONE ISLAND to link up the generators.\pProblem is, the manual's written in pure nerd."))
+    msgbox(format("Ha! Remember my GYM in VERMILION? You dug through every trash can in the place looking for my switches.\pToday I'm the one digging through junk. Elbow-deep in wires!"))
+    msgbox(format("Funny thing, though. Look what turned up in the junk.\pThis LIGHT BALL belongs with your PIKACHU. Better hands than mine!"))
+    giveitem(ITEM_LIGHT_BALL)
+    msgbox(format("Treat it right. It's been waiting for a PIKACHU worth the shine."))
+    msgbox(format("Don't you worry. The café will serve dinner on time tonight. That's an order!"))
+    release
+    end
+}
+script Rematch_PowerPlant_EventScript_Aide {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_AIDE)) {
+        msgbox(format("That's four reroutes now. RAICHU, please. No more sneezing."))
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_AIDE)
+    msgbox(format("I'm one of PROF. OAK's aides. He sent me to help LT. SURGE with the machine.\pWe've rerouted the power three times. Every time RAICHU sneezes, the lights go out again."))
+    msgbox(format("Oh! Wait, I remember you! ROUTE 2! I gave you HM05 FLASH once you'd caught ten POKéMON.\pI hope it came in handy in a certain dark cave tonight!"))
+    release
+    end
+}
+script Rematch_PowerPlant_EventScript_Raichu {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_RAICHU)) {
+        playmoncry(SPECIES_RAICHU, CRY_MODE_NORMAL)
+        msgbox(format("RAICHU looks away and whistles. It definitely caused the blackout."))
+        waitmoncry
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_RAICHU)
+    playmoncry(SPECIES_RAICHU, CRY_MODE_NORMAL)
+    msgbox(format("RAICHU: Rai-chu!\pSparks crackle from its cheeks. It looks very pleased with itself. You suspect it caused the blackout."))
+    waitmoncry
+    release
+    end
+}
+script Rematch_PowerPlant_EventScript_Voltorb {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_VOLTORB)) {
+        msgbox(format("VOLTORB rolls past again. Your hand twitches. You do NOT pick it up."))
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_VOLTORB)
+    msgbox(format("VOLTORB rolls past you.\pIt looks exactly like a POKé BALL. Some memories never fade. You do NOT pick it up."))
+    release
+    end
+}
+script Rematch_PowerPlant_EventScript_Machine {
+    msgbox(format("A huge network machine, humming loudly.\pThe screen flickers: “POWER 12%... REROUTING...”"), MSGBOX_SIGN)
+}

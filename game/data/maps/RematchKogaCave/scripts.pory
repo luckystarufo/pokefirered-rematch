@@ -1,0 +1,87 @@
+// KOGA's hideout (the cave mouth in the garden): FIVE ISLAND's Lost Cave entrance, pitch-dark on entry
+// (requires_flash). Anyone can light it: the first frame asks whether to use FLASH (no HM needed tonight).
+
+mapscripts RematchKogaCave_MapScripts {
+    MAP_SCRIPT_ON_FRAME_TABLE [
+        VAR_TEMP_1, 0: Rematch_KogaCave_EventScript_Dark
+    ]
+}
+
+script Rematch_KogaCave_EventScript_Dark {
+    lockall
+    setvar(VAR_TEMP_1, 1)
+    msgbox(format("It's pitch-black in here. You can't see a thing...\pBut PIKACHU could light up the cave with FLASH. Use FLASH?"), MSGBOX_YESNO)
+    if (var(VAR_RESULT) == YES) {
+        msgbox(format("PIKACHU used FLASH!"))
+        closemessage
+        playse(SE_M_REFLECT)
+        setflag(FLAG_SYS_FLASH_ACTIVE)
+        animateflash(0)
+        setflashlevel(0)
+    } else {
+        msgbox(format("You decide to feel your way along the walls in the dark."))
+    }
+    releaseall
+    end
+}
+
+script Rematch_KogaCave_EventScript_Koga {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_KOGA)) {
+        msgbox(format("KOGA: You found me twice. I need a better hiding spot."))
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_KOGA)
+    setvar(VAR_0x8009, FAMECHECKER_KOGA)   // their page in the FAME CHECKER
+    special(Rematch_UnlockFamePage)
+    msgbox(format("KOGA: Fwahahaha! You found me, even here. Your instincts are as sharp as ever."))
+    msgbox(format("Do you remember my GYM in FUCHSIA? The invisible walls?\pYou walked into them so many times that my students kept a tally on the wall. I still have it."))
+    msgbox(format("My daughter runs the GYM now. She added even more walls. I could not be prouder."))
+    msgbox(format("A ninja never rests... but tonight, I will make an exception. Go. Enjoy yourself."))
+    msgbox(format("...But first, a little game. Let us see if you can find me twice."))
+    closemessage
+    // a puff of smoke: KOGA reappears in the far corner (and stays there if the player comes back)
+    playse(SE_M_TELEPORT)
+    removeobject(LOCALID_KOGA_ROOM_KOGA)
+    waitse
+    setobjectxyperm(LOCALID_KOGA_ROOM_KOGA, 8, 2)
+    addobject(LOCALID_KOGA_ROOM_KOGA)
+    release
+    end
+}
+script Rematch_KogaCave_EventScript_Weezing {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_WEEZING)) {
+        playmoncry(SPECIES_WEEZING, CRY_MODE_NORMAL)
+        msgbox(format("WEEZING puffs out another minty cloud. The cave smells like toothpaste."))
+        waitmoncry
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_WEEZING)
+    playmoncry(SPECIES_WEEZING, CRY_MODE_NORMAL)
+    msgbox(format("WEEZING: Weez-ing!\pIt puffs out a little cloud of... mint? Someone has been feeding it herbs for the party."))
+    waitmoncry
+    release
+    end
+}
+script Rematch_KogaCave_EventScript_Muk {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_MUK)) {
+        playmoncry(SPECIES_MUK, CRY_MODE_NORMAL)
+        msgbox(format("MUK waves a gooey arm. The floor stays spotless."))
+        waitmoncry
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_MUK)
+    playmoncry(SPECIES_MUK, CRY_MODE_NORMAL)
+    msgbox(format("MUK: Muuuk!\pIt oozes over to say hello, leaves a small puddle, then politely oozes back over it to clean up."))
+    waitmoncry
+    release
+    end
+}

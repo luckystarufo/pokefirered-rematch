@@ -1,0 +1,462 @@
+// The ELITE FOUR lodge (a copy of the Champion's room). Flow:
+//   1. Greet each ELITE FOUR member (FLAG_REMATCH_GREETED_*).
+//   2. Whoever is greeted last proposes the farewell rematch. The room is
+//      re-staged: their POKéMON step aside, the spectators (OAK, BLAINE,
+//      GYM LEADERS, GIOVANNI) appear, and the rival waits at the entrance.
+//      We re-enter the map (warpsilent) with VAR_REMATCH_STATE == ARENA so
+//      everyone is placed, then the ON_FRAME battle scene runs.
+//   3. The rival walks up; his BLASTOISE, SNORLAX and ALAKAZAM join the player (src/rematch.c), then four
+//      double battles in one run, one ELITE FOUR member (2 POKéMON) at a time, a get-ready menu in between;
+//      the first loss ends the run.
+//   4. Ending: the rival, OAK sends everyone to dinner and they leave; the player goes through the back door
+//      to the creator (data/maps/RematchCreator), then the narrator, Hall of Fame, credits.
+
+mapscripts RematchArena_MapScripts {
+    // Music: the ROUTE 24 theme before the battles (the room's own music). When everyone gathers to watch, the
+    // room comes back in with the GYM theme; {RIVAL}'s theme cuts in when he arrives, and the battle theme
+    // starts with the first battle. After the battles: the slow PALLET TOWN tune, without a break, through the
+    // goodbyes, the room emptying (re-entered in the ENDING state) and on into the creator's room.
+    MAP_SCRIPT_ON_TRANSITION {
+        if (var(VAR_REMATCH_STATE) == REMATCH_STATE_ARENA) {
+            savebgm(MUS_GYM)
+        } elif (var(VAR_REMATCH_STATE) == REMATCH_STATE_ENDING) {
+            savebgm(MUS_SLOW_PALLET)
+        }
+    }
+    MAP_SCRIPT_ON_FRAME_TABLE [
+        VAR_REMATCH_STATE, REMATCH_STATE_ARENA: Rematch_Arena_EventScript_BattleScene
+    ]
+}
+
+// ---------------------------------------------------------------------------
+// 1. Greetings
+// ---------------------------------------------------------------------------
+
+script Rematch_Arena_EventScript_Lorelei {
+    lock
+    faceplayer
+    if (!flag(FLAG_REMATCH_GREETED_LORELEI)) {
+        msgbox(format("LORELEI: {PLAYER}... You walked into my ice chamber in short sleeves, I remember. I lent you my scarf afterwards.\pYou never gave it back. I'm only a little bitter."))
+        msgbox(format("I retired to FOUR ISLAND, you know. This garden reminded me of home the moment I saw it."))
+        setflag(FLAG_REMATCH_GREETED_LORELEI)
+        setvar(VAR_0x8009, FAMECHECKER_LORELEI)   // their page in the FAME CHECKER
+        special(Rematch_UnlockFamePage)
+    }
+    else {
+        msgbox(format("LORELEI: The scarf can wait. Go say hello to the others."))
+        release
+        end
+    }
+    goto(Rematch_Arena_EventScript_AfterGreeting)
+}
+
+script Rematch_Arena_EventScript_Bruno {
+    lock
+    faceplayer
+    if (!flag(FLAG_REMATCH_GREETED_BRUNO)) {
+        msgbox(format("BRUNO: Hoo hah! {PLAYER}! I spent a month training on a mountain in JOHTO. Berries for every meal!\p...Never again."))
+        msgbox(format("Every morning, I tell MACHOKE: one day, that trainer will come back. Today is that day!"))
+        setflag(FLAG_REMATCH_GREETED_BRUNO)
+        setvar(VAR_0x8009, FAMECHECKER_BRUNO)   // their page in the FAME CHECKER
+        special(Rematch_UnlockFamePage)
+    }
+    else {
+        msgbox(format("BRUNO: Greet the others, {PLAYER}! Then... you'll see. Hoo hah!"))
+        release
+        end
+    }
+    goto(Rematch_Arena_EventScript_AfterGreeting)
+}
+
+script Rematch_Arena_EventScript_Agatha {
+    lock
+    faceplayer
+    if (!flag(FLAG_REMATCH_GREETED_AGATHA)) {
+        msgbox(format("AGATHA: Oh ho! The brat is back! Still afraid of my GENGAR? ...Hmph. You never were. That was the annoying part."))
+        msgbox(format("Oak still talks about you, you know. The old fool. Hmph. ...It's good to see you. Look how you've grown."))
+        setflag(FLAG_REMATCH_GREETED_AGATHA)
+        setvar(VAR_0x8009, FAMECHECKER_AGATHA)   // their page in the FAME CHECKER
+        special(Rematch_UnlockFamePage)
+    }
+    else {
+        msgbox(format("AGATHA: Go on, go on. The others are waiting too. Hmph."))
+        release
+        end
+    }
+    goto(Rematch_Arena_EventScript_AfterGreeting)
+}
+
+script Rematch_Arena_EventScript_Lance {
+    lock
+    faceplayer
+    if (!flag(FLAG_REMATCH_GREETED_LANCE)) {
+        msgbox(format("LANCE: {PLAYER}. Only one trainer ever beat my dragons while still a child."))
+        msgbox(format("CHARIZARD, PIKACHU, LAPRAS... You never traded them away for something flashier. That's real strength."))
+        setflag(FLAG_REMATCH_GREETED_LANCE)
+        setvar(VAR_0x8009, FAMECHECKER_LANCE)   // their page in the FAME CHECKER
+        special(Rematch_UnlockFamePage)
+    }
+    else {
+        msgbox(format("LANCE: Speak with the others first. We have something to ask you."))
+        release
+        end
+    }
+    goto(Rematch_Arena_EventScript_AfterGreeting)
+}
+
+script Rematch_Arena_EventScript_AfterGreeting {
+    if (flag(FLAG_REMATCH_GREETED_LORELEI) && flag(FLAG_REMATCH_GREETED_BRUNO)
+     && flag(FLAG_REMATCH_GREETED_AGATHA) && flag(FLAG_REMATCH_GREETED_LANCE)) {
+        goto(Rematch_Arena_EventScript_Proposal)
+    }
+    msgbox(format("Say hello to the others too. We have something to ask you."))
+    release
+    end
+}
+
+script Rematch_Arena_EventScript_Proposal {
+    msgbox(format("Now that you've seen all four of us... We talked it over before you came."))
+    msgbox(format("The last time we battled, you were a child, and so, in a way, were we.\pOne more rematch, {PLAYER}. One of us at a time. A farewell to our childhood."))
+    msgbox(format("Then gather round, everyone! It's time!"))
+    closemessage
+    setflag(FLAG_REMATCH_HIDE_E4_MONS)
+    clearflag(FLAG_REMATCH_HIDE_SPECTATORS)
+    clearflag(FLAG_REMATCH_HIDE_ARENA_RIVAL)
+    setvar(VAR_REMATCH_STATE, REMATCH_STATE_ARENA)
+    // Re-enter the room so everyone is placed for the battle.
+    fadescreen(FADE_TO_BLACK)
+    warpsilent(MAP_REMATCH_ARENA, 5, 9)   // the player left of the emblem, the rival joins on its right (7, 9)
+    waitstate
+    release
+    end
+}
+
+// ---------------------------------------------------------------------------
+// 2-3. The battle scene
+// ---------------------------------------------------------------------------
+
+movement Rematch_Arena_Movement_RivalJoins {
+    walk_up * 2
+    walk_right
+    walk_up * 4
+    face_up
+}
+movement Rematch_Arena_Movement_FaceUp { face_up }
+movement Rematch_Arena_Movement_FaceRight { face_right }
+movement Rematch_Arena_Movement_FaceLeft { face_left }
+movement Rematch_Arena_Movement_FaceDown { face_down }
+movement Rematch_Arena_Movement_Exclaim { emote_exclamation_mark }
+
+script Rematch_Arena_EventScript_BattleScene {
+    lockall
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Arena_Movement_FaceUp)
+    waitmovement(0)
+    msgbox(format("PROF. OAK: Ho ho! Everyone's here! Just like the old days!"))
+    msgbox(format("MISTY: Go get 'em, {PLAYER}!"))
+    msgbox(format("LT. SURGE: Give 'em a jolt, soldier!"))
+    msgbox(format("ERIKA: ...Mm? Oh! It's starting! Do your best, {PLAYER}!"))
+    closemessage
+    playbgm(MUS_ENCOUNTER_RIVAL, 0)
+    msgbox(format("{RIVAL}: Hey! Hold it! You think I'd let you have all the fun?"))
+    closemessage
+    applymovement(LOCALID_ARENA_RIVAL, Rematch_Arena_Movement_RivalJoins)
+    waitmovement(0)
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Arena_Movement_FaceRight)
+    applymovement(LOCALID_ARENA_RIVAL, Rematch_Arena_Movement_FaceLeft)
+    waitmovement(0)
+    msgbox(format("{RIVAL}: Four against one? That's not a farewell, that's an ambush!\pI'm in. Four against two. Now it's fair."))
+    msgbox(format("For once, we're on the same side. Weird, huh?"))
+    msgbox(format("BLASTOISE! SNORLAX! ALAKAZAM! You're with {PLAYER} on this one. Fight side by side with their team.\pWe've been on opposite sides since Gramps's lab. Let's see what we can do together."))
+    special(Rematch_LendRivalMon)
+    playfanfare(MUS_OBTAIN_ITEM)
+    message(format("BLASTOISE, SNORLAX and ALAKAZAM joined {PLAYER}'s team!"))
+    waitmessage
+    waitfanfare
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Arena_Movement_FaceUp)
+    applymovement(LOCALID_ARENA_RIVAL, Rematch_Arena_Movement_FaceUp)
+    waitmovement(0)
+    // One run: four battles back to back, one ELITE FOUR member at a time (two POKéMON each, double battle),
+    // with no healing in between. The first loss ends the run (the team is healed instead of whiting out) and
+    // goes straight to the ending, whose lines depend on how far the player got (FLAG_REMATCH_BEAT_*).
+    // Music: the battle theme is also the map music between battles, so it never restarts (src/pokemon.c,
+    // PlayMapChosenOrBattleBGM) and there is no victory jingle until LANCE (src/battle_main.c).
+    savebgm(MUS_VS_GYM_LEADER)
+    msgbox(format("LORELEI: The two of you, side by side. Good. I'll go first."))
+    closemessage
+    setvar(VAR_LAST_TALKED, LOCALID_ARENA_LORELEI)
+    trainerbattle_earlyrival(TRAINER_REMATCH_LORELEI, RIVAL_BATTLE_HEAL_AFTER, "You two still\nmelt my ice.", "The ice holds...\nthis time.")
+    if (var(VAR_RESULT) == TRUE) {
+        goto(Rematch_Arena_EventScript_Ending)
+    }
+    setflag(FLAG_REMATCH_BEAT_LORELEI)
+    msgbox(format("LORELEI: Ice melts. That's what I tell my students on FOUR ISLAND.\pI never told them it was two kids from PALLET TOWN who taught me that."))
+    closemessage
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Arena_Movement_FaceRight)
+    applymovement(LOCALID_ARENA_RIVAL, Rematch_Arena_Movement_FaceLeft)
+    waitmovement(0)
+    message(format("{RIVAL}: One down!\pNo breaks and no healing, {PLAYER}. Got anything in that bag? Now's the time."))
+    waitmessage
+    call(Rematch_Arena_EventScript_GetReady)
+    msgbox(format("{RIVAL}: Let's go!"))
+    closemessage
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Arena_Movement_FaceUp)
+    applymovement(LOCALID_ARENA_RIVAL, Rematch_Arena_Movement_FaceUp)
+    waitmovement(0)
+    msgbox(format("BRUNO: Hoo hah! {PLAYER}! {RIVAL}! Show me those muscles!"))
+    closemessage
+    setvar(VAR_LAST_TALKED, LOCALID_ARENA_BRUNO)
+    trainerbattle_earlyrival(TRAINER_REMATCH_BRUNO, RIVAL_BATTLE_HEAL_AFTER, "You two hit like\na MACHAMP!", "Hoo hah!\nStill got it!")
+    if (var(VAR_RESULT) == TRUE) {
+        goto(Rematch_Arena_EventScript_Ending)
+    }
+    setflag(FLAG_REMATCH_BEAT_BRUNO)
+    msgbox(format("BRUNO: Hoo hah... my fists are shaking.\pNot from losing. From how glad I am that you two came back. Together!"))
+    closemessage
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Arena_Movement_FaceRight)
+    applymovement(LOCALID_ARENA_RIVAL, Rematch_Arena_Movement_FaceLeft)
+    waitmovement(0)
+    message(format("{RIVAL}: Halfway there!\pMan, BRUNO hits like a truck. Patch up whoever needs it... and think about who goes out first."))
+    waitmessage
+    call(Rematch_Arena_EventScript_GetReady)
+    msgbox(format("{RIVAL}: Okay. Let's do this."))
+    closemessage
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Arena_Movement_FaceUp)
+    applymovement(LOCALID_ARENA_RIVAL, Rematch_Arena_Movement_FaceUp)
+    waitmovement(0)
+    msgbox(format("AGATHA: Oh ho! Two brats for the price of one! Let's see if you're still not afraid of my ghosts."))
+    closemessage
+    setvar(VAR_LAST_TALKED, LOCALID_ARENA_AGATHA)
+    trainerbattle_earlyrival(TRAINER_REMATCH_AGATHA, RIVAL_BATTLE_HEAL_AFTER, "Hmph! Well done,\nyou two.", "Hee hee! The old\nlady still has it!")
+    if (var(VAR_RESULT) == TRUE) {
+        goto(Rematch_Arena_EventScript_Ending)
+    }
+    setflag(FLAG_REMATCH_BEAT_AGATHA)
+    msgbox(format("AGATHA: Hmph. Oak and I used to argue about which of you two was the bigger brat.\p...We never settled it. Look at you both now."))
+    closemessage
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Arena_Movement_FaceRight)
+    applymovement(LOCALID_ARENA_RIVAL, Rematch_Arena_Movement_FaceLeft)
+    waitmovement(0)
+    message(format("{RIVAL}: One more. Don't you dare quit on me now.\pLANCE won't hold back. If you've been saving anything, this is it."))
+    waitmessage
+    call(Rematch_Arena_EventScript_GetReady)
+    msgbox(format("{RIVAL}: ...Together. Like we should've been all along."))
+    closemessage
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Arena_Movement_FaceUp)
+    applymovement(LOCALID_ARENA_RIVAL, Rematch_Arena_Movement_FaceUp)
+    waitmovement(0)
+    savebgm(MUS_SLOW_PALLET)        // after LANCE's battle, the room goes quiet into the ending
+    msgbox(format("LANCE: {PLAYER}. {RIVAL}. Together, one last time."))
+    closemessage
+    setvar(VAR_LAST_TALKED, LOCALID_ARENA_LANCE)
+    trainerbattle_earlyrival(TRAINER_REMATCH_LANCE, RIVAL_BATTLE_HEAL_AFTER, "So this is what\nyou two became.", "No shame in it.\nNot tonight.")
+    if (var(VAR_RESULT) == TRUE) {
+        goto(Rematch_Arena_EventScript_Ending)
+    }
+    setflag(FLAG_REMATCH_BEAT_LANCE)
+    goto(Rematch_Arena_EventScript_Ending)
+}
+
+// The get-ready menu between battles: TEAM (the POKéMON screen) / BAG / READY!. TEAM and BAG come back here;
+// the player never leaves their spot. ({RIVAL}'s line is still on screen the first time round.)
+script Rematch_Arena_EventScript_GetReady {
+    do {
+        multichoice(21, 6, MULTICHOICE_REMATCH_GET_READY, TRUE)
+        copyvar(VAR_0x8008, VAR_RESULT)
+        if (var(VAR_0x8008) == 0) {
+            closemessage
+            fadescreen(FADE_TO_BLACK)
+            special(Rematch_OpenTeam)
+            waitstate
+        } elif (var(VAR_0x8008) == 1) {
+            closemessage
+            fadescreen(FADE_TO_BLACK)
+            special(Rematch_OpenBag)
+            waitstate
+        }
+    } while (var(VAR_0x8008) != 2)
+    return
+}
+
+// ---------------------------------------------------------------------------
+// 4. Ending
+// ---------------------------------------------------------------------------
+
+script Rematch_Arena_EventScript_Ending {
+    setvar(VAR_REMATCH_STATE, REMATCH_STATE_ENDING)
+    special(Rematch_ReturnRivalMon)
+    setvar(VAR_REMATCH_PROGRESS, 4)     // the battles are over: the back door opens
+    setflag(FLAG_DEFEATED_CHAMP)
+    // a run that ended early comes back to the battle theme; ease into the quiet one
+    if (!flag(FLAG_REMATCH_BEAT_AGATHA)) {
+        fadenewbgm(MUS_SLOW_PALLET)
+    }
+    savebgm(MUS_DUMMY)
+    if (flag(FLAG_REMATCH_BEAT_LANCE)) {
+        msgbox(format("LORELEI: Keep the scarf, by the way. Share it. You two always did share everything... except first place."))
+        msgbox(format("BRUNO: Hoo hah! Next time, I'm bringing berries for everyone!"))
+        msgbox(format("AGATHA: Hmph. Tell Oak his two favourite brats haven't changed one bit."))
+        msgbox(format("LANCE: That was a farewell worthy of you both.\pDon't wait so long next time. The dragons missed you both."))
+    } elif (flag(FLAG_REMATCH_BEAT_AGATHA)) {
+        msgbox(format("LANCE: You lost, and you're both smiling. Children couldn't do that.\pFarewell, you two. That was worthy of you."))
+        msgbox(format("AGATHA: Hmph. Three out of four. Oak will brag about it for a month."))
+    } elif (flag(FLAG_REMATCH_BEAT_BRUNO)) {
+        msgbox(format("AGATHA: Hee hee. Tell Oak the old lady won this time. He'll never believe it."))
+        msgbox(format("BRUNO: Two of us down, though! That's more than most trainers ever manage!"))
+        msgbox(format("LANCE: It was never about winning, you two. It was about seeing you here again. Together."))
+    } elif (flag(FLAG_REMATCH_BEAT_LORELEI)) {
+        msgbox(format("BRUNO: Hoo hah! A month of berries, every meal... and it was worth it!"))
+        msgbox(format("LORELEI: You two still beat me, you know. My ice will be melting for weeks."))
+        msgbox(format("LANCE: It was never about winning, you two. It was about seeing you here again. Together."))
+    } else {
+        msgbox(format("LORELEI: Frozen at the very first step.\p...At least this time neither of you needed my scarf."))
+        msgbox(format("BRUNO: Hoo hah! I didn't even get to flex!"))
+        msgbox(format("LANCE: It was never about winning, you two. It was about seeing you here again. Together."))
+    }
+    closemessage
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Arena_Movement_FaceRight)
+    applymovement(LOCALID_ARENA_RIVAL, Rematch_Arena_Movement_FaceLeft)
+    waitmovement(0)
+    if (flag(FLAG_REMATCH_BEAT_LANCE)) {
+        msgbox(format("{RIVAL}: ...We did it. Together, for once."))
+    } elif (flag(FLAG_REMATCH_BEAT_AGATHA)) {
+        msgbox(format("{RIVAL}: So close! One more and... ah, who cares. Together, for once."))
+    } elif (flag(FLAG_REMATCH_BEAT_BRUNO)) {
+        msgbox(format("{RIVAL}: Two out of four! Not bad for a couple of old-timers. Together, for once."))
+    } elif (flag(FLAG_REMATCH_BEAT_LORELEI)) {
+        msgbox(format("{RIVAL}: One down, and then... yeah. Who cares. Together, for once."))
+    } else {
+        msgbox(format("{RIVAL}: ...We lost. Right at the start.\p...Huh. Why can't I stop laughing?"))
+    }
+    msgbox(format("{RIVAL}: BLASTOISE, SNORLAX, ALAKAZAM... you were amazing out there. ...You too, {PLAYER}. Don't let it go to your head."))
+    msgbox(format("You know what, {PLAYER}? I'm glad it's you. It was always going to be you."))
+    msgbox(format("...sniff... Hey. Promise me something.\pDon't be a stranger this time, okay?"))
+    msgbox(format("{PLAYER}: I promise.\pNot this time. Not ever again."))
+    closemessage
+    delay(30)
+    applymovement(LOCALID_ARENA_OAK, Rematch_Arena_Movement_FaceLeft)
+    waitmovement(0)
+    msgbox(format("PROF. OAK: Splendid! Simply splendid! Now then, everyone... SURGE, how are those lights?"))
+    closemessage
+    applymovement(LOCALID_ARENA_SURGE, Rematch_Arena_Movement_FaceRight)
+    waitmovement(0)
+    msgbox(format("LT. SURGE: Power's back at one hundred percent, sir!"))
+    msgbox(format("PROF. OAK: Then dinner is served! Everyone, to the café!"))
+    closemessage
+    delay(20)
+    msgbox(format("PROF. OAK: Not you, {PLAYER}.\pSomeone has been waiting behind that door all evening. They asked to see you once the battles were over."))
+    closemessage
+    // everyone heads for dinner: hide them all and re-enter the room with only the player left
+    fadescreen(FADE_TO_BLACK)
+    setflag(FLAG_REMATCH_HIDE_E4)
+    setflag(FLAG_REMATCH_HIDE_E4_MONS)
+    setflag(FLAG_REMATCH_HIDE_SPECTATORS)
+    setflag(FLAG_REMATCH_HIDE_ARENA_RIVAL)
+    setflag(FLAG_DONT_TRANSITION_MUSIC)    // the tune carries on through the re-entry (no fade-out)
+    warpsilent(MAP_REMATCH_ARENA, 5, 9)   // the player left of the emblem, the rival joins on its right (7, 9)
+    waitstate
+    releaseall
+    end
+}
+
+// The door behind the ELITE FOUR (to data/maps/RematchCreator) stays shut until the rematch is won:
+// this trigger in front of it only fires while VAR_REMATCH_PROGRESS is 0.
+movement Rematch_Arena_Movement_StepBack { walk_down }
+script Rematch_Arena_EventScript_BackDoorLocked {
+    lockall
+    msgbox(format("The door is closed.\pA voice comes from the other side: “Not yet, {PLAYER}! The ELITE FOUR are preparing a surprise for you. Go talk to them first!”"))
+    closemessage
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Arena_Movement_StepBack)
+    waitmovement(0)
+    releaseall
+    end
+}
+
+// After the ending everyone has gone to dinner; leaving now would skip the person behind the back door.
+// (Trigger on the tile in front of the exit, while VAR_REMATCH_STATE is ENDING.)
+movement Rematch_Arena_Movement_StepUp { walk_up }
+script Rematch_Arena_EventScript_ExitBlocked {
+    lockall
+    msgbox(format("Someone is still waiting behind the door at the back.\pDinner can wait a little longer."))
+    closemessage
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_Arena_Movement_StepUp)
+    waitmovement(0)
+    releaseall
+    end
+}
+
+// ---------------------------------------------------------------------------
+// The ELITE FOUR's POKéMON
+// ---------------------------------------------------------------------------
+
+
+script Rematch_Arena_EventScript_Lapras {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_LAPRAS)) {
+        playmoncry(SPECIES_LAPRAS, CRY_MODE_NORMAL)
+        msgbox(format("LAPRAS hums the same song again. It sounds a little like home."))
+        waitmoncry
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_LAPRAS)
+    playmoncry(SPECIES_LAPRAS, CRY_MODE_NORMAL)
+    msgbox(format("LAPRAS: Laaa...\pIts gentle song fills the room."))
+    waitmoncry
+    release
+    end
+}
+
+script Rematch_Arena_EventScript_Machoke {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_MACHOKE)) {
+        playmoncry(SPECIES_MACHOKE, CRY_MODE_NORMAL)
+        msgbox(format("MACHOKE is still flexing. It has not stopped. It will not stop."))
+        waitmoncry
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_MACHOKE)
+    playmoncry(SPECIES_MACHOKE, CRY_MODE_NORMAL)
+    msgbox(format("MACHOKE: Macho!\pIt flexes. Then flexes again, in case you missed it."))
+    waitmoncry
+    release
+    end
+}
+
+script Rematch_Arena_EventScript_Gengar {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_GENGAR)) {
+        playmoncry(SPECIES_GENGAR, CRY_MODE_NORMAL)
+        msgbox(format("GENGAR is suddenly right behind you. ...It grins again."))
+        waitmoncry
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_GENGAR)
+    playmoncry(SPECIES_GENGAR, CRY_MODE_NORMAL)
+    msgbox(format("GENGAR: Gengar!\pIt grins. You feel a chill... and a little nostalgic."))
+    waitmoncry
+    release
+    end
+}
+
+script Rematch_Arena_EventScript_Dragonite {
+    lock
+    faceplayer
+    if (flag(FLAG_REMATCH_TALKED_DRAGONITE)) {
+        playmoncry(SPECIES_DRAGONITE, CRY_MODE_NORMAL)
+        msgbox(format("DRAGONITE bows again, a little lower this time."))
+        waitmoncry
+        release
+        end
+    }
+    setflag(FLAG_REMATCH_TALKED_DRAGONITE)
+    playmoncry(SPECIES_DRAGONITE, CRY_MODE_NORMAL)
+    msgbox(format("DRAGONITE: Grooo!\pIt bows its big head politely."))
+    waitmoncry
+    release
+    end
+}

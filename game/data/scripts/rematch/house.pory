@@ -1,0 +1,125 @@
+// The opening at home. MOM hands over the rival's reunion letter and a cruise
+// ticket, then the ferry scene plays and lands at the Rematch harbor
+// (src/seagallop.c redirects the ferry while VAR_REMATCH_STATE is TRAVELLING).
+//
+// Hooks in data/maps/PalletTown_PlayersHouse_1F/map.json:
+//   - MOM's object script -> Rematch_House_EventScript_Mom
+//   - trigger tiles on the row in front of the door (y = 7, x = 2..11) while
+//     VAR_REMATCH_STATE == HOME -> Rematch_House_EventScript_MomStopsYou
+// The player never leaves the house through the door.
+
+script Rematch_House_EventScript_Mom {
+    lock
+    faceplayer
+    if (var(VAR_REMATCH_STATE) != REMATCH_STATE_HOME) {
+        msgbox(format("MOM: Have a wonderful time, dear!"))
+        release
+        end
+    }
+    goto(Rematch_House_EventScript_Letter)
+}
+
+// MOM walks from her spot (8,4) down to row 6, then along it until she's
+// right above the player (who is on row 7, in front of the door).
+movement Rematch_House_Movement_PlayerNoticeMom { emote_exclamation_mark }
+movement Rematch_House_Movement_MomTo2  { walk_down * 2  walk_left * 6  face_down }
+movement Rematch_House_Movement_MomTo3  { walk_down * 2  walk_left * 5  face_down }
+movement Rematch_House_Movement_MomTo4  { walk_down * 2  walk_left * 4  face_down }
+movement Rematch_House_Movement_MomTo5  { walk_down * 2  walk_left * 3  face_down }
+movement Rematch_House_Movement_MomTo6  { walk_down * 2  walk_left * 2  face_down }
+movement Rematch_House_Movement_MomTo7  { walk_down * 2  walk_left  face_down }
+movement Rematch_House_Movement_MomTo8  { walk_down * 2  face_down }
+movement Rematch_House_Movement_MomTo9  { walk_down * 2  walk_right  face_down }
+movement Rematch_House_Movement_MomTo10 { walk_down * 2  walk_right * 2  face_down }
+movement Rematch_House_Movement_MomTo11 { walk_down * 2  walk_right * 3  face_down }
+movement Rematch_House_Movement_PlayerFaceUp { face_up }
+
+script Rematch_House_EventScript_MomStopsYou {
+    lockall
+    msgbox(format("MOM: {PLAYER}! Wait!"))
+    closemessage
+    getplayerxy(VAR_0x8004, VAR_0x8005)
+    switch (var(VAR_0x8004)) {
+        case 2:  applymovement(LOCALID_MOM, Rematch_House_Movement_MomTo2)
+        case 3:  applymovement(LOCALID_MOM, Rematch_House_Movement_MomTo3)
+        case 4:  applymovement(LOCALID_MOM, Rematch_House_Movement_MomTo4)
+        case 5:  applymovement(LOCALID_MOM, Rematch_House_Movement_MomTo5)
+        case 6:  applymovement(LOCALID_MOM, Rematch_House_Movement_MomTo6)
+        case 7:  applymovement(LOCALID_MOM, Rematch_House_Movement_MomTo7)
+        case 8:  applymovement(LOCALID_MOM, Rematch_House_Movement_MomTo8)
+        case 9:  applymovement(LOCALID_MOM, Rematch_House_Movement_MomTo9)
+        case 10: applymovement(LOCALID_MOM, Rematch_House_Movement_MomTo10)
+        default: applymovement(LOCALID_MOM, Rematch_House_Movement_MomTo11)
+    }
+    waitmovement(0)
+    applymovement(OBJ_EVENT_ID_PLAYER, Rematch_House_Movement_PlayerFaceUp)
+    waitmovement(0)
+    msgbox(format("MOM: Don't run off yet! Something came for you this morning."))
+    goto(Rematch_House_EventScript_Letter)
+}
+
+script Rematch_House_EventScript_Letter {
+    msgbox(format("MOM: A letter came for you, dear! There's no name on it.\pLet's see what it says..."))
+    closemessage
+    textcolor(NPC_TEXT_COLOR_NEUTRAL)
+    msgbox(format("“Dear {PLAYER},\pYou were the kid from PALLET TOWN who made it into the HALL OF FAME."))
+    msgbox(format("Tonight, everyone from that journey is gathering one more time."))
+    msgbox(format("It's all arranged and all paid for. All that's missing is you.\pI'll be waiting at the end of the night.\p- A friend from the old days”"))
+    closemessage
+    textcolor(NPC_TEXT_COLOR_FEMALE)
+    msgbox(format("MOM: Oh! There's something else in the envelope..."))
+    giveitem(ITEM_SS_TICKET)
+    msgbox(format("A cruise ticket! The ship is leaving right away, dear."))
+    msgbox(format("Oh, and I found your old FAME CHECKER in your desk drawer. Take it!\pYou'll want to remember everyone you see tonight."))
+    giveitem(ITEM_FAME_CHECKER)
+    msgbox(format("Take CHARIZARD, PIKACHU and LAPRAS with you. They've been pacing by the door since breakfast.\pThey know something's up."))
+    closemessage
+    special(Rematch_GivePlayerTeam)
+    playfanfare(MUS_OBTAIN_ITEM)
+    message(format("CHARIZARD, PIKACHU and LAPRAS joined {PLAYER}!"))
+    waitmessage
+    waitfanfare
+    msgbox(format("MOM: And say hello to everyone for me!\pOh, and pack a sweater, dear. It gets chilly out on the water."))
+    msgbox(format("Don't worry about the dishes. I'll manage. Go!"))
+    closemessage
+    setvar(VAR_REMATCH_STATE, REMATCH_STATE_TRAVELLING)
+    delay(20)
+    // The Seagallop ferry scene; the "from/to" ports only pick the direction
+    // the ship sails across the screen. src/seagallop.c lands us at our harbor.
+    setvar(VAR_0x8004, SEAGALLOP_VERMILION_CITY)
+    setvar(VAR_0x8006, SEAGALLOP_ONE_ISLAND)
+    fadescreen(FADE_TO_BLACK)
+    special(DoSeagallopFerryScene)
+    waitstate
+    releaseall
+    end
+}
+
+
+// ---------------------------------------------------------------- home details, brought up to date (Rematch)
+// (the vanilla TV, the "press L/R" notice and the bedroom PC menu are replaced in the maps' bg_events)
+script Rematch_House_EventScript_TV {
+    msgbox(format("There's a news program on TV.\p“...A golden-haired man is ROARING about TARIFFS again. Experts warn prices will go up on... well, everything.”\p...Even POKé BALLS, apparently."), MSGBOX_SIGN)
+    end
+}
+
+script Rematch_House_EventScript_Poster {
+    msgbox(format("It's a poster for an AI assistant. “ASK ME ANYTHING!”\pSomeone has scribbled underneath: “Where's MEW?”\pNo answer yet."), MSGBOX_SIGN)
+    end
+}
+
+script Rematch_House_EventScript_PC {
+    lockall
+    setvar(VAR_0x8004, 1)
+    special(AnimatePcTurnOn)
+    playse(SE_PC_ON)
+    msgbox(format("{PLAYER} booted up the PC.\p2,048 unread messages. 99+ notifications. Every single app wants an update."))
+    msgbox(format("In the MAILBOX, buried under the newsletters, there's one old message that never got deleted:\p“Smell ya later! - {RIVAL}”"))
+    msgbox(format("...{PLAYER} turned off the PC."))
+    closemessage
+    setvar(VAR_0x8004, 1)
+    playse(SE_PC_OFF)
+    special(AnimatePcTurnOff)
+    releaseall
+    end
+}

@@ -1,0 +1,33 @@
+// Behind the ELITE FOUR's door (the Hall of Fame room): the creator of this game, waiting for the player.
+// After their talk come the narrator, the ending marker for the web page, the Hall of Fame and the credits.
+
+mapscripts RematchCreator_MapScripts {}
+
+script Rematch_Creator_EventScript_Creator {
+    lockall
+    faceplayer
+    msgbox(format("???: ...Hi, {PLAYER}. You made it all the way here."))
+    msgbox(format("???: I suppose I should introduce myself.\pI'm a solo developer who made all of this. The letter, the ferry, the café, the garden... this whole night. (Even this game, if you know what I mean.)"))
+    msgbox(format("CREATOR: A while ago, I realized how much I missed this world, and y'all.\pThe tall grass. The GYM music. Trading with friends after school. The feeling that all of KANTO was out there, waiting."))
+    msgbox(format("So I did something a little silly.\pI rebuilt it, piece by piece, and put a little bit of myself inside it. Then I sent out the invitations."))
+    msgbox(format("Everyone you met tonight... and you.\pYou're the friends I wanted at this table."))
+    msgbox(format("Thank you for coming back, {PLAYER}. For battling one more time. For remembering."))
+    msgbox(format("The power's back on, and dinner is getting cold.\pLet's not keep everyone waiting."))
+    closemessage
+    textcolor(NPC_TEXT_COLOR_NEUTRAL)
+    delay(40)
+    msgbox(format("In {PLAY_YEAR}, a {AGE_THEN}-year-old named {PLAYER} set off with a dream."))
+    msgbox(format("Now you're {AGE_NOW}.\pSchool. Work. Friends. Life.\pBut some things stayed exactly where you left them."))
+    msgbox(format("Welcome home, {PLAYER}.\pThank you for playing, one more time."))
+    closemessage
+    special(Rematch_MarkEndingStarted)
+    delay(40)
+    // everyone's waiting in the café: the dinner finale (data/maps/RematchDinner), then THE END
+    setvar(VAR_REMATCH_STATE, REMATCH_STATE_DINNER)
+    clearflag(FLAG_DONT_TRANSITION_MUSIC)       // (set when the ELITE FOUR room emptied) the music changes for dinner
+    fadescreenspeed(FADE_TO_BLACK, 24)
+    warpsilent(MAP_REMATCH_DINNER, 1, 6)
+    waitstate
+    releaseall
+    end
+}
