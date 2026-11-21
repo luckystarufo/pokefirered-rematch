@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Invite codes. Locally they live in .local/invites.json (tools/serve-web.py); with --aws, in the deployed
 DynamoDB table (names from .local/outputs.json, written by tools/deploy.sh). A code is valid for 24 hours
-from the first time it's entered, on any device.
+from the first time it's entered, in up to 5 browsers (each browser that enters it takes one of the 5).
 
   tools/invite.py [--aws] add "Alex"     create a code for Alex
-  tools/invite.py [--aws] list           every code: who, and whether it's unused, active or expired
-  tools/invite.py [--aws] reset CODE     give a code a fresh 24 hours (it starts again on next use)
+  tools/invite.py [--aws] list           every code: who, unused/active/expired, browsers used (of 5)
+  tools/invite.py [--aws] reset CODE     give a code a fresh 24 hours and all 5 browsers back (from next use)
   tools/invite.py [--aws] revoke CODE    delete a code; it stops working at once, even mid-game
 """
 import json, os, secrets, subprocess, sys, time
@@ -15,6 +15,7 @@ INVITES = os.path.join(ROOT, ".local", "invites.json")
 OUTPUTS = os.path.join(ROOT, ".local", "outputs.json")
 ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"  # no 0/O, 1/I/L: easy to read out loud
 TTL = 24 * 3600
+MAX_BROWSERS = 5  # same as the API (infra/lambda/api.mjs, tools/serve-web.py)
 
 
 def pretty(code):
@@ -51,13 +52,14 @@ class Local:
         self.save(invites)
 
     def all(self):
-        return [(c, i.get("name", ""), i.get("firstUsedAt")) for c, i in self.load().items()]
+        return [(c, i.get("name", ""), i.get("firstUsedAt"), i.get("browsers", 0)) for c, i in self.load().items()]
 
     def reset(self, code):
         invites = self.load()
         if code not in invites:
             sys.exit(f"No such code: {pretty(code)}")
         invites[code]["firstUsedAt"] = None
+        invites[code]["browsers"] = 0
         self.save(invites)
 
     def revoke(self, code):
@@ -101,11 +103,12 @@ class Aws:
             if not start:
                 break
         return [(i["code"]["S"], i.get("name", {}).get("S", ""),
-                 int(i["firstUsedAt"]["N"]) if "firstUsedAt" in i else None) for i in items]
+                 int(i["firstUsedAt"]["N"]) if "firstUsedAt" in i else None,
+                 int(i["browsers"]["N"]) if "browsers" in i else 0) for i in items]
 
     def reset(self, code):
         self.aws("dynamodb", "update-item", "--table-name", self.table, "--key", json.dumps({"code": {"S": code}}),
-                 "--update-expression", "REMOVE firstUsedAt", "--condition-expression", "attribute_exists(code)")
+                 "--update-expression", "REMOVE firstUsedAt, browsers", "--condition-expression", "attribute_exists(code)")
 
     def revoke(self, code):
         self.aws("dynamodb", "delete-item", "--table-name", self.table, "--key", json.dumps({"code": {"S": code}}))
@@ -124,8 +127,8 @@ def main(args):
         store.add(code, args[1])
         print(f"{args[1]}: {pretty(code)}")
     elif args == ["list"]:
-        for code, name, first_used in sorted(store.all(), key=lambda x: x[1].lower()):
-            print(f"{pretty(code)}  {name:<16} {state(first_used)}")
+        for code, name, first_used, browsers in sorted(store.all(), key=lambda x: x[1].lower()):
+            print(f"{pretty(code)}  {name:<16} {state(first_used):<18} {browsers}/{MAX_BROWSERS} browsers")
     elif args[:1] in (["reset"], ["revoke"]) and len(args) == 2:
         code = norm(args[1])
         getattr(store, args[0])(code)

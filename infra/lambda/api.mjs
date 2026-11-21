@@ -2,7 +2,7 @@
 // only takes requests signed by our distribution (IAM + Origin Access Control), and they must carry CloudFront's
 // secret x-origin-verify header. The AWS twin of tools/serve-web.py:
 //   GET  /api/session           is my session cookie still good?           -> { name, expiresAt } | 401
-//   POST /api/invite            { code } -> 24h session cookie from the code's first use | 404 | 410
+//   POST /api/invite            { code } -> 24h session cookie from the code's first use | 404 | 410 | 403 (full)
 //   POST /api/messages          closing-page message (needs a session)     -> DynamoDB + email
 //   POST /api/invite-requests   { email, why, website } from the gate      -> DynamoDB + email (rate-limited)
 import crypto from 'node:crypto';
@@ -14,6 +14,7 @@ const sns = new SNSClient({});
 const { INVITES_TABLE, MESSAGES_TABLE, REQUESTS_TABLE, THROTTLE_TABLE, TOPIC_ARN, SESSION_SECRET, ORIGIN_SECRET } =
   process.env;
 const INVITE_TTL = 24 * 3600;
+const MAX_BROWSERS = 5; // browsers (session cookies) one code can be opened in
 const COOKIE = 'rematch_session';
 // Caps that keep a script from running up the bill or flooding the host's inbox (each accepted request or
 // message sends one email):
@@ -102,25 +103,35 @@ async function enterCode(event, body) {
   const code = normalizeCode(body?.code);
   if (!code) return reply(404, { error: 'unknown' });
   if (await overLimit('codeTries', visitor(event))) return reply(429);
+  // A browser that already holds a live session for this code isn't a new browser: don't count it again.
+  const s = await session(event);
+  if (s && s.code === code) return reply(200, { name: s.name, expiresAt: s.expiresAt });
   let firstUsedAt, name;
   try {
-    // the first use starts the 24 hours; later uses (any device) keep the same window
+    // One atomic step: the first use starts the 24 hours (later uses keep the same window) and every new
+    // browser takes one of the code's MAX_BROWSERS slots. Two browsers entering at once can't both get the last.
     const r = await ddb.send(new UpdateItemCommand({
       TableName: INVITES_TABLE,
       Key: { code: { S: code } },
-      UpdateExpression: 'SET firstUsedAt = if_not_exists(firstUsedAt, :now)',
-      ConditionExpression: 'attribute_exists(code)',
-      ExpressionAttributeValues: { ':now': { N: String(now()) } },
+      UpdateExpression: 'SET firstUsedAt = if_not_exists(firstUsedAt, :now) ADD browsers :one',
+      ConditionExpression: 'attribute_exists(code) AND (attribute_not_exists(firstUsedAt) OR firstUsedAt > :cutoff)'
+        + ' AND (attribute_not_exists(browsers) OR browsers < :max)',
+      ExpressionAttributeValues: {
+        ':now': { N: String(now()) }, ':cutoff': { N: String(now() - INVITE_TTL) },
+        ':one': { N: '1' }, ':max': { N: String(MAX_BROWSERS) },
+      },
       ReturnValues: 'ALL_NEW',
     }));
     firstUsedAt = Number(r.Attributes.firstUsedAt.N);
     name = r.Attributes.name?.S || '';
   } catch (e) {
-    if (e.name === 'ConditionalCheckFailedException') return reply(404, { error: 'unknown' });
-    throw e;
+    if (e.name !== 'ConditionalCheckFailedException') throw e;
+    const inv = await getInvite(code); // which condition failed?
+    if (!inv) return reply(404, { error: 'unknown' });
+    if (inv.firstUsedAt && inv.firstUsedAt + INVITE_TTL <= now()) return reply(410, { error: 'expired' });
+    return reply(403, { error: 'full' });
   }
   const expiresAt = firstUsedAt + INVITE_TTL;
-  if (expiresAt <= now()) return reply(410, { error: 'expired' });
   const token = `${code}.${expiresAt}.${hmac(`${code}.${expiresAt}`)}`;
   const cookie = `${COOKIE}=${token}; Max-Age=${expiresAt - now()}; Path=/; HttpOnly; Secure; SameSite=Lax`;
   return reply(200, { name, expiresAt }, [cookie]);

@@ -52,6 +52,8 @@ $("code-form").addEventListener("submit", async (e) => {
       ? "This invitation has expired. Ask the host for a fresh one."
       : r.status === 429
         ? "Too many tries from here. Take a break and try again in an hour."
+        : r.status === 403
+          ? "This invitation is already open on 5 devices. Ask the host if you need another."
         : "That code doesn't match any letter. Check it and try again.";
   } catch {
     $("code-error").textContent = "Couldn't reach the host just now. Try again in a moment.";

@@ -15,6 +15,9 @@ One CDK stack, `Rematch`, in us-east-1. CDK runs in Docker (`tools/cdk.sh`); not
 
 - The bucket is private; only this CloudFront distribution can read it.
 - `/emulator/*` and `/rom/*` need a signed, unexpired, unrevoked session cookie (checked at the edge).
+- A code opens in at most 5 browsers: each new browser that enters it takes one of 5 slots (a returning browser
+  with its cookie doesn't). Private mode, cleared cookies or a second browser app count as new.
+  `invite.py reset` gives all 5 back.
 - The API's Function URL only accepts requests signed by this distribution (IAM + Origin Access Control), and
   they must also carry the secret `x-origin-verify` header. POSTs carry an `x-amz-content-sha256` body hash
   (the page adds it) so CloudFront can sign them.
@@ -31,6 +34,7 @@ tools/rom-builder/make.sh                  # build the ROM (game/pokefirered.gba
 tools/deploy.sh diff                       # what would change
 tools/deploy.sh                            # put the current page + ROM online
 python3 tools/invite.py --aws add "Alex"   # a code for Alex (also: list, reset CODE, revoke CODE)
+                                           # list shows browsers used, e.g. 2/5
 python3 tools/read-messages.py --aws       # messages and invitation requests
 ```
 

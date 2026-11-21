@@ -1,7 +1,7 @@
 # Local dev server for web/. A stand-in for the AWS backend, with the same rules:
 #  - never cached, so a normal reload always picks up the latest page, scripts and ROM;
 #  - the invite gate: POST /api/invite {code} checks .local/invites.json (tools/invite.py). A code is valid for
-#    24 hours from the first time it's entered, on any device; the browser gets a signed session cookie that
+#    24 hours from the first time it's entered, in up to 5 browsers; each browser gets a signed session cookie that
 #    expires with it. GET /api/session says whether the cookie is still good;
 #  - /rom/* and /emulator/* are only served with a valid session (in AWS, CloudFront checks the same cookie);
 #  - POST /api/messages (closing page) and POST /api/invite-requests (gate page) append to .local/*.jsonl,
@@ -15,6 +15,7 @@ INVITES = os.path.join(LOCAL, "invites.json")
 SECRET_FILE = os.path.join(LOCAL, "session-secret")
 MAX_BODY = 16 * 1024
 INVITE_TTL = 24 * 3600
+MAX_BROWSERS = 5  # browsers (session cookies) one code can be opened in
 COOKIE = "rematch_session"
 REQUEST_LIMIT = (5, 3600)  # at most 5 invitation requests per visitor per hour
 
@@ -123,12 +124,17 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         inv = invites.get(code)
         if not inv:
             return self.reply(404, {"error": "unknown"})
-        if not inv.get("firstUsedAt"):
-            inv["firstUsedAt"] = now()
-            save_invites(invites)
-        exp = inv["firstUsedAt"] + INVITE_TTL
-        if exp <= now():
+        s = self.session()
+        if s and s[0] == code:  # this browser already holds a session for the code: not a new browser
+            return self.reply(200, {"name": inv.get("name", ""), "expiresAt": s[1]})
+        if inv.get("firstUsedAt") and inv["firstUsedAt"] + INVITE_TTL <= now():
             return self.reply(410, {"error": "expired"})
+        if inv.get("browsers", 0) >= MAX_BROWSERS:
+            return self.reply(403, {"error": "full"})
+        inv["firstUsedAt"] = inv.get("firstUsedAt") or now()
+        inv["browsers"] = inv.get("browsers", 0) + 1
+        save_invites(invites)
+        exp = inv["firstUsedAt"] + INVITE_TTL
         cookie = f"{COOKIE}={sign(code, exp)}; Max-Age={exp - now()}; Path=/; HttpOnly; SameSite=Lax"
         return self.reply(200, {"name": inv.get("name", ""), "expiresAt": exp}, cookie)
 
