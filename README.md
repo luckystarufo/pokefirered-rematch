@@ -19,7 +19,7 @@ eyes. And the Elite Four have one last rematch planned, but this time he fights 
 
 It takes an hour or two. There is no saving: like the night itself, it happens once.
 
-## Speedrun Demo
+## Speedrun demo (YouTube)
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=oXuqrqkp6zY">
