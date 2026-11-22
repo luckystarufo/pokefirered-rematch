@@ -19,6 +19,17 @@ eyes. And the Elite Four have one last rematch planned, but this time he fights 
 
 It takes an hour or two. There is no saving: like the night itself, it happens once.
 
+## Speedrun Demo
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=oXuqrqkp6zY">
+    <img src="https://img.youtube.com/vi/oXuqrqkp6zY/maxresdefault.jpg" width="640" alt="Watch a full speedrun of Rematch on YouTube">
+  </a>
+  <br>
+  <em>A full run, start to finish (click to watch on YouTube). It's a speedrun, so it only stops for a few of
+  the main characters; most of the island's little touches are left for you to find.</em>
+</p>
+
 ## Build it
 
 You don't need an original ROM. Everything builds from source, thanks to the
